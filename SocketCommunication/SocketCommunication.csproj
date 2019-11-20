@@ -44,12 +44,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BusinessLogic\Parser.cs" />
     <Compile Include="BusinessLogic\Receiver.cs" />
     <Compile Include="BusinessLogic\Sender.cs" />
+    <Compile Include="Enums\MessageType.cs" />
+    <Compile Include="Interfaces\IClient.cs" />
+    <Compile Include="Interfaces\IMobileData.cs" />
+    <Compile Include="Interfaces\IParsedData.cs" />
+    <Compile Include="Interfaces\IParser.cs" />
     <Compile Include="Interfaces\IReceiver.cs" />
     <Compile Include="Interfaces\ISender.cs" />
     <Compile Include="Interfaces\ISendPacket.cs" />
     <Compile Include="Interfaces\ISocketInformation.cs" />
+    <Compile Include="Models\Client.cs" />
+    <Compile Include="Models\MobileData.cs" />
+    <Compile Include="Models\ParsedData.cs" />
     <Compile Include="Models\SendPacket.cs" />
     <Compile Include="Models\SocketInformation.cs" />
     <Compile Include="Service1.cs">
