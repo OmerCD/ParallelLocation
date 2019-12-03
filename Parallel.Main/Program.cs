@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.IO;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -13,29 +15,24 @@ namespace Parallel.Main
     {
         static void Main(string[] args)
         {
+            CreateWebHostBuilder(args).Build().Run();
             
-            var serviceCollection = new ServiceCollection();
-            var environment = Environment.GetEnvironmentVariable("ENVIRONMENT");
-
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(AppContext.BaseDirectory))
-#if DEBUG
-                .AddJsonFile("appsettings.Development.json", true, true)
-#else
-                .AddJsonFile($"appsettings.json", true, true);
-#endif
-                .AddJsonFile($"appsettings.{environment}.json", true, true);
-            IConfigurationRoot configurationRoot = builder.Build();
-            
-            var startup = new Startup(configurationRoot);
-            startup.ConfigureServices(serviceCollection);
-
-            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-
-            using var scope = serviceProvider.CreateScope();
-            var mT = new MongoTest(scope.ServiceProvider.GetService<IDatabaseContext>());
-
             Console.ReadKey();
+        }
+
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builder =>
+                {
+                    builder.SetBasePath(Path.Combine(AppContext.BaseDirectory))
+#if DEBUG
+                        .AddJsonFile("appsettings.Development.json", true, true);
+#else
+                        .AddJsonFile($"appsettings.json", true, true);
+#endif
+                })
+                .UseStartup<Startup>();
         }
     }
 
@@ -43,6 +40,7 @@ namespace Parallel.Main
     {
         private readonly IDatabaseContext _mongoContext;
         private readonly IRepository<User> _repository;
+
         public MongoTest(IDatabaseContext mongoContext)
         {
             _mongoContext = mongoContext;
@@ -53,7 +51,7 @@ namespace Parallel.Main
             user.Name = "Tester";
             _repository.Update(user);
             _mongoContext.SaveChanges();
-            
+
             GetAll();
         }
 

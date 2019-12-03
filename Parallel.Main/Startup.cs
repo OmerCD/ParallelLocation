@@ -12,9 +12,9 @@ namespace Parallel.Main
 {
     public class Startup
     {
-        private readonly IConfigurationRoot _configuration;
+        private readonly IConfiguration _configuration;
 
-        public Startup(IConfigurationRoot configuration)
+        public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -40,6 +40,11 @@ namespace Parallel.Main
                 {
                     {new byte[] {98, 9}, typeof(int)}
                 }));
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
+            
         }
     }
 }

@@ -7,5 +7,6 @@ namespace ReflectorO
         byte[] CreateByteArray(object @object);
         object CreateObject(byte[] bytes, Type type);
         void RegisterType(Type type);
+        EndianType DefaultEndianType { get; set; }
     }
 }

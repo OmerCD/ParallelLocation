@@ -21,5 +21,9 @@
       <ProjectReference Include="..\Parallel.Location\Parallel.Location.csproj" />
       <ProjectReference Include="..\Parallel.Repository\Parallel.Repository.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
 
 </Project>
