@@ -5,6 +5,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using Parallel.Location;
 using Parallel.Repository;
@@ -13,25 +14,48 @@ namespace Parallel.Main
 {
     class Program
     {
+        private static IServiceCollection _serviceCollection;
+
         static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
-            
-            Console.ReadKey();
-        }
+            _serviceCollection = new ServiceCollection();
 
-        private static IWebHostBuilder CreateWebHostBuilder(string[] args)
-        {
-            return WebHost.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration(builder =>
-                {
-                    builder.SetBasePath(Path.Combine(AppContext.BaseDirectory))
+            IConfigurationBuilder BuilderAction(IConfigurationBuilder builder)
+            {
+                return builder.SetBasePath(Path.Combine(AppContext.BaseDirectory))
 #if DEBUG
-                        .AddJsonFile("appsettings.Development.json", true, true);
+                    .AddJsonFile("appsettings.Development.json", true, true);
+
 #else
                         .AddJsonFile($"appsettings.json", true, true);
 #endif
-                })
+            }
+
+            CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
+            CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
+            Console.ReadKey();
+        }
+
+        private static IHostBuilder CreateHostBuilder(string[] args,
+            Action<IConfigurationBuilder> builderAction)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builderAction)
+                .ConfigureServices(services =>
+                {
+                    services.AddHostedService<MainCycle>();
+                    var configBuilder = new ConfigurationBuilder();
+                    builderAction(configBuilder);
+                    var startUp = new Startup(configBuilder.Build());
+                    startUp.ConfigureServices(services);
+                });
+        }
+
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args,
+            Action<IConfigurationBuilder> builderAction)
+        {
+            return WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builderAction)
                 .UseStartup<Startup>();
         }
     }

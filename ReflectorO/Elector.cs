@@ -29,7 +29,7 @@ namespace ReflectorO
             }
         }
 
-        public Elector(EndianType defaultEndianType)
+        public Elector(EndianType defaultEndianType = EndianType.LittleEndian)
         {
             DefaultEndianType = defaultEndianType;
             _typeList = new Dictionary<Type, PropertyInfo[]>();

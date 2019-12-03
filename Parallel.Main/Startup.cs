@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Parallel.Repository;
 using NLog.Extensions.Logging;
+using ReflectorO;
 
 namespace Parallel.Main
 {
@@ -40,6 +41,7 @@ namespace Parallel.Main
                 {
                     {new byte[] {98, 9}, typeof(int)}
                 }));
+            services.AddSingleton<IElector, Elector>();
         }
 
         public void Configure(IApplicationBuilder app)
