@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MessageObjectRouter\MessageObjectRouter.csproj" />
       <ProjectReference Include="..\Parallel.Location\Parallel.Location.csproj" />
       <ProjectReference Include="..\Parallel.Repository\Parallel.Repository.csproj" />
     </ItemGroup>

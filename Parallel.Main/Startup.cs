@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.Collections.Generic;
+using MessageObjectRouter;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,6 +13,7 @@ namespace Parallel.Main
     public class Startup
     {
         private readonly IConfigurationRoot _configuration;
+
         public Startup(IConfigurationRoot configuration)
         {
             _configuration = configuration;
@@ -23,7 +27,19 @@ namespace Parallel.Main
                 builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddNLog(_configuration);
             });
-            services.AddSingleton<IDatabaseContext>(new MongoContext("mongodb://188.132.230.218","TestDatabase"));
+            services.AddSingleton<IDatabaseContext>(new MongoContext("mongodb://188.132.230.218", "TestDatabase"));
+
+            services.AddSingleton<IKeyExtractor<byte[], byte[]>>(x => new ByteKeyExtractor(new Dictionary<byte, int>
+            {
+                {98, 2},
+                {4, 1}
+            }));
+
+            services.AddSingleton<IParseRouter<byte[]>>(x => new ByteParseRouter<byte[]>(
+                x.GetRequiredService<IKeyExtractor<byte[], byte[]>>(), new Dictionary<byte[], Type>
+                {
+                    {new byte[] {98, 9}, typeof(int)}
+                }));
         }
     }
 }
