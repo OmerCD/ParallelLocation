@@ -22,6 +22,7 @@
         <ProjectReference Include="..\Parallel.Location\Parallel.Location.csproj" />
         <ProjectReference Include="..\Parallel.Repository\Parallel.Repository.csproj" />
         <ProjectReference Include="..\ReflectorO\ReflectorO.csproj" />
+        <ProjectReference Include="..\SocketCommunication\SocketCommunication.csproj" />
     </ItemGroup>
 
     <ItemGroup>

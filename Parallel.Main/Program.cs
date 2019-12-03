@@ -31,7 +31,7 @@ namespace Parallel.Main
 #endif
             }
 
-            CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
+//            CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
             CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
             Console.ReadKey();
         }

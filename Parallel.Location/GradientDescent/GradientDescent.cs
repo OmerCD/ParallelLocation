@@ -24,19 +24,19 @@ namespace Parallel.Location
 
         public ICoordinate GetResult(params IDistance[] distances)
         {
-            var (ranges, anchors) = CreateRangeArray(distances);
-            var gradientResult = MLAT.Mlat(DenseMatrix.OfArray(anchors), ranges, null);
-            var estimate = gradientResult.Estimator;
+            (Vector<double> ranges, double[,] anchors) = CreateRangeArray(distances);
+            MLAT.GradientDescentResult gradientResult = MLAT.Mlat(DenseMatrix.OfArray(anchors), ranges, null);
+            Vector<double> estimate = gradientResult.Estimator;
             return new Coordinate(estimate[0], estimate[1], estimate[2]);
         }
 
-        private (Vector<double> ranges, double[,] anchors) CreateRangeArray(IDistance[] distances)
+        private (Vector<double> ranges, double[,] anchors) CreateRangeArray(IReadOnlyList<IDistance> distances)
         {
-            var anchorMatrix = new double[distances.Length, 3];
-            var ranges = Vector<double>.Build.Dense(distances.Length);
-            for (int i = 0; i < distances.Length; i++)
+            var anchorMatrix = new double[distances.Count, 3];
+            Vector<double> ranges = Vector<double>.Build.Dense(distances.Count);
+            for (var i = 0; i < distances.Count; i++)
             {
-                var currentAnchor = _anchorsDic[distances[i].FromAnchorId];
+                IAnchor currentAnchor = _anchorsDic[distances[i].FromAnchorId];
                 anchorMatrix[i, 0] = currentAnchor.X;
                 anchorMatrix[i, 1] = currentAnchor.Z;
                 anchorMatrix[i, 2] = currentAnchor.Y;

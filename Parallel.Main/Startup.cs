@@ -7,7 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Parallel.Repository;
 using NLog.Extensions.Logging;
+using Parallel.Location;
+using Parallel.Main.Extensions;
 using ReflectorO;
+using SocketCommunication.BusinessLogic;
+using SocketCommunication.Interfaces;
 
 namespace Parallel.Main
 {
@@ -29,24 +33,14 @@ namespace Parallel.Main
                 builder.AddNLog(_configuration);
             });
             services.AddSingleton<IDatabaseContext>(new MongoContext("mongodb://188.132.230.218", "TestDatabase"));
-
-            services.AddSingleton<IKeyExtractor<byte[], byte[]>>(x => new ByteKeyExtractor(new Dictionary<byte, int>
-            {
-                {98, 2},
-                {4, 1}
-            }));
-
-            services.AddSingleton<IParseRouter<byte[]>>(x => new ByteParseRouter<byte[]>(
-                x.GetRequiredService<IKeyExtractor<byte[], byte[]>>(), new Dictionary<byte[], Type>
-                {
-                    {new byte[] {98, 9}, typeof(int)}
-                }));
             services.AddSingleton<IElector, Elector>();
+            services.AddScoped<IReceiver, Receiver>();
+            services.AddElectorParser();
+            services.AddLocationCalculatorRouter();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            
         }
     }
 }
