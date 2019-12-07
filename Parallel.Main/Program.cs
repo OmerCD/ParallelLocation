@@ -1,8 +1,11 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.IO;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using Parallel.Location;
 using Parallel.Repository;
@@ -11,31 +14,49 @@ namespace Parallel.Main
 {
     class Program
     {
+        private static IServiceCollection _serviceCollection;
+
         static void Main(string[] args)
         {
-            
-            var serviceCollection = new ServiceCollection();
-            var environment = Environment.GetEnvironmentVariable("ENVIRONMENT");
+            _serviceCollection = new ServiceCollection();
 
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(AppContext.BaseDirectory))
+            IConfigurationBuilder BuilderAction(IConfigurationBuilder builder)
+            {
+                return builder.SetBasePath(Path.Combine(AppContext.BaseDirectory))
 #if DEBUG
-                .AddJsonFile("appsettings.Development.json", true, true)
+                    .AddJsonFile("appsettings.Development.json", true, true);
+
 #else
-                .AddJsonFile($"appsettings.json", true, true);
+                        .AddJsonFile($"appsettings.json", true, true);
 #endif
-                .AddJsonFile($"appsettings.{environment}.json", true, true);
-            IConfigurationRoot configurationRoot = builder.Build();
-            
-            var startup = new Startup(configurationRoot);
-            startup.ConfigureServices(serviceCollection);
+            }
 
-            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-
-            using var scope = serviceProvider.CreateScope();
-            var mT = new MongoTest(scope.ServiceProvider.GetService<IDatabaseContext>());
-
+//            CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
+            CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
             Console.ReadKey();
+        }
+
+        private static IHostBuilder CreateHostBuilder(string[] args,
+            Action<IConfigurationBuilder> builderAction)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builderAction)
+                .ConfigureServices(services =>
+                {
+                    services.AddHostedService<MainCycle>();
+                    var configBuilder = new ConfigurationBuilder();
+                    builderAction(configBuilder);
+                    var startUp = new Startup(configBuilder.Build());
+                    startUp.ConfigureServices(services);
+                });
+        }
+
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args,
+            Action<IConfigurationBuilder> builderAction)
+        {
+            return WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builderAction)
+                .UseStartup<Startup>();
         }
     }
 
@@ -43,6 +64,7 @@ namespace Parallel.Main
     {
         private readonly IDatabaseContext _mongoContext;
         private readonly IRepository<User> _repository;
+
         public MongoTest(IDatabaseContext mongoContext)
         {
             _mongoContext = mongoContext;
@@ -53,7 +75,7 @@ namespace Parallel.Main
             user.Name = "Tester";
             _repository.Update(user);
             _mongoContext.SaveChanges();
-            
+
             GetAll();
         }
 

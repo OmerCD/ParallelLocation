@@ -62,6 +62,7 @@ namespace BusinessTest
                             var receivedDataLength = client.Receive(receivedData);
                             //TODO:ReceivedData -> Database
                             SendResponsePackageToClient(_clientId, receivedData);
+                            
                             if (new Parser().Parse(receivedData, receivedDataLength, out var parsedData))
                             {
                                 parsedData.MobileData.Where(s => s.Power == 8).ToList().ForEach(s => Console.WriteLine($"distance: {s.Distance}, readernodeid:{s.ReaderNodeId}"));
