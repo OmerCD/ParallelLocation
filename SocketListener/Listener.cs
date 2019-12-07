@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SocketListener.Utilities;
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -6,6 +7,15 @@ namespace SocketListener
 {
     public class Listener : IListener
     {
+        private readonly BoyerMoore _startPattern;
+        private readonly BoyerMoore _endPattern;
+
+        public Listener()
+        {
+            _startPattern = new BoyerMoore(new byte[] { 240, 240, 240, 240, 240 });
+            _endPattern = new BoyerMoore(new byte[] { 241, 241, 241, 241, 241 });
+        }
+
         public void StartRecieve(BindInformation bindInformation, Action<byte[]> messageReceived)
         {
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(bindInformation.Address), bindInformation.Port);
@@ -34,19 +44,11 @@ namespace SocketListener
             int bytesRead = stateInfo.Socket.EndReceive(ar);
             if (bytesRead > 0)
             {
-                byte[] SingleMessage = new byte[0];
                 byte[] received = stateInfo.Buffer[..bytesRead];
-                for (int i = 0; i < received.Length; i++)
-                {
-                    if (received[i] == 241 && received[i + 1] == 241 && received[i + 2] == 241 && received[i + 3] == 241 && received[i + 4] == 241)
-                    {
-                        length = i + 5;
-                        SingleMessage = new byte[length];
-                        received.CopyTo(SingleMessage, 0);
-                    }
-                }
-
-                stateInfo.MessageReceived(SingleMessage);
+                var start = _startPattern.Search(received);
+                start += _startPattern.PatternLength;
+                var end = _endPattern.Search(received, start);
+                stateInfo.MessageReceived(received[start..end]);
                 stateInfo.Buffer = new byte[8192];
             }
 

@@ -3,8 +3,8 @@
 */bin/
 */obj/
 */.vs/
-/.vs/
-/.vs/Parallel/
+.vs/
+/.vs/Parallel/*
 /.vs/Parallel/v16/Server/sqlite3/storage.ide-wal
 /.vs/Parallel/v16/Server/sqlite3/storage.ide-shm
 /.vs/Parallel/v16/Server/sqlite3/storage.ide
