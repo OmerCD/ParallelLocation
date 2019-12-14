@@ -61,7 +61,8 @@ namespace MessageObjectRouter
             }
             else
             {
-                throw new KeyNotFoundException($"Given key {item[0]} was not found.");
+                return null;
+//                throw new KeyNotFoundException($"Given key {item[0]} was not found.");
             }
         }
 

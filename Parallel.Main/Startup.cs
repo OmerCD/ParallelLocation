@@ -41,6 +41,7 @@ namespace Parallel.Main
 
         public void Configure(IApplicationBuilder app)
         {
+           
         }
     }
 }

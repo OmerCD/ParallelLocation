@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReflectorO", "ReflectorO\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketListener", "SocketListener\SocketListener.csproj", "{5423C30F-2C7F-4316-8B90-3F327ADFDF55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parallel.Shared", "Parallel.Shared\Parallel.Shared.csproj", "{91927CB8-3F97-481E-AED6-0CDF4DB4A58D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{5423C30F-2C7F-4316-8B90-3F327ADFDF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5423C30F-2C7F-4316-8B90-3F327ADFDF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5423C30F-2C7F-4316-8B90-3F327ADFDF55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91927CB8-3F97-481E-AED6-0CDF4DB4A58D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91927CB8-3F97-481E-AED6-0CDF4DB4A58D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91927CB8-3F97-481E-AED6-0CDF4DB4A58D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91927CB8-3F97-481E-AED6-0CDF4DB4A58D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

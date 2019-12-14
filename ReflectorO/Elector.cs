@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ReflectorO.Attributes;
+using ReflectorO.CustomParse;
 using ReflectorO.Exceptions;
 
 namespace ReflectorO
@@ -11,6 +12,7 @@ namespace ReflectorO
     public class Elector : IElector
     {
         private readonly IDictionary<Type, PropertyInfo[]> _typeList;
+        private static readonly Type CustomParserType = typeof(ICustomParsedObject);
         private EndianType _defaultEndianType;
         private EndianBitConverter _bitConverter;
 
@@ -47,7 +49,9 @@ namespace ReflectorO
 
         private void AddType(Type type)
         {
-            _typeList.Add(type, type.GetProperties().OrderBy(x => x.MetadataToken).ToArray());
+            _typeList.Add(type,
+                type.GetProperties().Where(info => info.GetCustomAttribute<NotParsedAttribute>() == null)
+                    .OrderBy(x => x.MetadataToken).ToArray());
         }
 
         public byte[] CreateByteArray(object @object)
@@ -77,13 +81,13 @@ namespace ReflectorO
                 case DateTime dtObj:
                     return _bitConverter.GetBytes(dtObj.Ticks);
                 default:
-                    var objType = @object.GetType();
+                    Type objType = @object.GetType();
                     if (@object is Array array)
                     {
                         var byteArray = new List<byte>();
-                        foreach (var arrItem in array)
+                        foreach (object arrItem in array)
                         {
-                            var bytes = CreateByteArray(arrItem);
+                            byte[] bytes = CreateByteArray(arrItem);
                             byteArray.AddRange(bytes);
                         }
 
@@ -104,8 +108,8 @@ namespace ReflectorO
                         var byteList = new List<byte>();
                         foreach (PropertyInfo property in properties)
                         {
-                            var value = property.GetValue(@object);
-                            var rest = CreateByteArray(value);
+                            object value = property.GetValue(@object);
+                            byte[] rest = CreateByteArray(value);
                             byteList.AddRange(rest);
                         }
 
@@ -116,16 +120,22 @@ namespace ReflectorO
             }
         }
 
-        public object CreateObject(byte[] bytes,Type type)
+        public object CreateObject(byte[] bytes, Type type)
         {
             var propsAndSizes = new PropertySizer(type, _typeList);
             long lastIndex = 0;
-            var header = Activator.CreateInstance(type);
+            object header = Activator.CreateInstance(type);
 
-            lastIndex = SetPropertyValues(bytes, header, propsAndSizes, lastIndex);
+            if (CustomParserType.IsAssignableFrom(type))
+            {
+                return ((ICustomParsedObject) header).Parse(bytes, this);
+            }
+
+            SetPropertyValues(bytes, header, propsAndSizes, lastIndex);
 
             return header;
         }
+
         private static object CreateValue<T>(Func<byte[], int, T> func, byte[] array, bool reverse)
         {
             if (reverse)
@@ -135,11 +145,12 @@ namespace ReflectorO
 
             return func(array, 0);
         }
+
         private object ByteArrayToObject(PropertyStructure propStruct)
         {
-            var array = propStruct.Bytes;
-            var propInfo = propStruct.PropertyInfo;
-            var objectType = propInfo.PropertyType;
+            byte[] array = propStruct.Bytes;
+            PropertyInfo propInfo = propStruct.PropertyInfo;
+            Type objectType = propInfo.PropertyType;
             bool reverse = _defaultEndianType == EndianType.BigEndian;
             switch (Type.GetTypeCode(objectType))
             {
@@ -179,6 +190,7 @@ namespace ReflectorO
                                     attribute.Lengths = new[] {propStruct.ArraySize.Value};
                                 }
                             }
+
                             Array arrayObject = CreateArray(array, objectType.GetElementType(), reverse, attribute);
                             return arrayObject;
                         }
@@ -191,8 +203,9 @@ namespace ReflectorO
                     {
                         return CreateObject(array, objectType);
                     }
+
                     var printValue = new System.Text.StringBuilder();
-                    for (int i = 0; i < array.Length; i++)
+                    for (var i = 0; i < array.Length; i++)
                     {
                         printValue.Append(array[i]);
                     }
@@ -200,6 +213,7 @@ namespace ReflectorO
                     throw new ElectorConvertException(objectType.FullName, printValue);
             }
         }
+
         public static int GetSize(Type propertyType, IDictionary<Type, PropertyInfo[]> typeProperties)
         {
             switch (Type.GetTypeCode(propertyType))
@@ -226,11 +240,11 @@ namespace ReflectorO
                     }
                     else if (propertyType.IsValueType || propertyType.IsClass)
                     {
-                        var properties = typeProperties[propertyType];
+                        PropertyInfo[] properties = typeProperties[propertyType];
                         var sum = 0;
-                        for (int i = 0; i < properties.Length; i++)
+                        for (var i = 0; i < properties.Length; i++)
                         {
-                            sum += GetSize(properties[i].PropertyType,typeProperties);
+                            sum += GetSize(properties[i].PropertyType, typeProperties);
                         }
 
                         return sum;
@@ -241,6 +255,7 @@ namespace ReflectorO
                     }
             }
         }
+
         private Array CreateArray(byte[] array, Type elementType, bool reverse, ArrayAttribute attribute)
         {
             int size = GetSize(elementType, _typeList);
@@ -250,12 +265,6 @@ namespace ReflectorO
 
             if (arrayObject.Rank > 1)
             {
-                var multiplier = 1;
-                foreach (var length in attribute.Lengths)
-                {
-                    multiplier *= length;
-                }
-
                 arrayObject.ForEach((x, indices) =>
                 {
                     Array.Copy(array, lastIndex, tempArray, 0, size);
@@ -264,14 +273,14 @@ namespace ReflectorO
                         Array.Reverse(tempArray);
                     }
 
-                    var @object = CreateObject(tempArray, elementType);
+                    object @object = CreateObject(tempArray, elementType);
                     arrayObject.SetValue(@object, indices);
                     lastIndex += size;
                 });
             }
             else
             {
-                for (int i = 0; i < arrayObject.LongLength; i++)
+                for (var i = 0; i < arrayObject.LongLength; i++)
                 {
                     Array.Copy(array, lastIndex, tempArray, 0, size);
                     if (reverse)
@@ -279,7 +288,7 @@ namespace ReflectorO
                         Array.Reverse(tempArray);
                     }
 
-                    var @object = CreateObject(tempArray, elementType);
+                    object @object = CreateObject(tempArray, elementType);
                     arrayObject.SetValue(@object, i);
                     lastIndex += size;
                 }
@@ -287,21 +296,40 @@ namespace ReflectorO
 
             return arrayObject;
         }
+
         private long SetPropertyValues(byte[] package, object header, PropertySizer propsAndSizes,
             long lastIndex)
         {
-            foreach (var (property, size) in propsAndSizes)
+            foreach ((PropertyInfo property, int size) in propsAndSizes)
             {
-                byte[] propValueBytes = new byte[size];
+                var propValueBytes = new byte[size];
                 Array.Copy(package, lastIndex, propValueBytes, 0, propValueBytes.Length);
                 lastIndex += size;
                 var arrayAttribute = property.GetCustomAttribute<ArrayAttribute>();
-                int arraySize = 0;
+                var arraySize = 0;
                 if (arrayAttribute != null && (arrayAttribute.Lengths == null || arrayAttribute.Lengths.Length == 0))
                 {
-                    arraySize = (int)propsAndSizes.GetFromHistory(arrayAttribute.LengthPropertyName);
+                    arraySize = (int) propsAndSizes.GetFromHistory(arrayAttribute.LengthPropertyName);
                 }
-                object createdObject = ByteArrayToObject(new PropertyStructure(propValueBytes, property,arraySize));
+
+                var parseAttribute = property.GetCustomAttribute<CustomParserAttribute>();
+                object createdObject;
+                if (parseAttribute == null)
+                {
+                    createdObject = ByteArrayToObject(new PropertyStructure(propValueBytes, property, arraySize));
+                }
+                else
+                {
+                    var objectParser = (ICustomParser) Activator.CreateInstance(parseAttribute.ObjectParserType);
+                    var parseInfo = new ParseInfo(parseAttribute.ReceiveAllData ? package : propValueBytes, header,
+                        (int) lastIndex, this);
+                    createdObject = objectParser.Parse(parseInfo);
+                    if (parseInfo.ContinueIndex != -1)
+                    {
+                        lastIndex = parseInfo.ContinueIndex;
+                    }
+                }
+
                 propsAndSizes.AddControlObject(property.Name, createdObject);
                 property.SetValue(header, createdObject);
             }

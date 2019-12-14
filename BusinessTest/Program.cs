@@ -22,8 +22,8 @@ namespace BusinessTest
                 var receiver = new Receiver();
                 receiver.Receive(new SocketInformation
                 {
-                    Ip = "192.168.10.28",
-                    Port = "7110"
+                    Ip = "192.168.10.41",
+                    Port = "5252"
                 });
             }
             catch (Exception ex)

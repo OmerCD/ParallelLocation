@@ -10,4 +10,8 @@
       </Reference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ReflectorO\ReflectorO.csproj" />
+    </ItemGroup>
+
 </Project>
