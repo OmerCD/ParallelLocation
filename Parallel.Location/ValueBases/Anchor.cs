@@ -10,9 +10,13 @@
             Id = id;
         }
 
-        public double X { get; }
-        public double Z { get; }
-        public double Y { get; }
+        public Anchor()
+        {
+            
+        }
+        public double X { get; set; }
+        public double Z { get; set; }
+        public double Y { get; set; }
         public int Id { get; set; }
     }
 }

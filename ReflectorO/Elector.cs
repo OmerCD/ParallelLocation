@@ -24,7 +24,7 @@ namespace ReflectorO
                 _defaultEndianType = value;
                 _bitConverter = value switch
                 {
-                    EndianType.LittleEndian => (EndianBitConverter) EndianBitConverter.LittleEndianBitConverter,
+                    EndianType.LittleEndian => EndianBitConverter.LittleEndianBitConverter,
                     EndianType.BigEndian => EndianBitConverter.BigEndianBitConverter,
                     _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
                 };
@@ -123,7 +123,6 @@ namespace ReflectorO
         public object CreateObject(byte[] bytes, Type type)
         {
             var propsAndSizes = new PropertySizer(type, _typeList);
-            long lastIndex = 0;
             object header = Activator.CreateInstance(type);
 
             if (CustomParserType.IsAssignableFrom(type))
@@ -131,7 +130,7 @@ namespace ReflectorO
                 return ((ICustomParsedObject) header).Parse(bytes, this);
             }
 
-            SetPropertyValues(bytes, header, propsAndSizes, lastIndex);
+            SetPropertyValues(bytes, header, propsAndSizes, 0);
 
             return header;
         }
@@ -220,7 +219,7 @@ namespace ReflectorO
             {
                 case TypeCode.Byte:
                 case TypeCode.Boolean:
-                    return (1);
+                    return 1;
                 case TypeCode.Char:
                 case TypeCode.UInt16:
                 case TypeCode.Int16:
@@ -242,6 +241,7 @@ namespace ReflectorO
                     {
                         PropertyInfo[] properties = typeProperties[propertyType];
                         var sum = 0;
+                        // ReSharper disable once LoopCanBeConvertedToQuery
                         for (var i = 0; i < properties.Length; i++)
                         {
                             sum += GetSize(properties[i].PropertyType, typeProperties);

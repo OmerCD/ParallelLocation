@@ -17,6 +17,7 @@ namespace Parallel.Shared.DataTransferObjects
         public uint Altitude { get; set; }
         public ushort MobilId { get; set; }
         public ushort ReaderId { get; set; }
+        [CustomParser(typeof(PowerParser))]
         public byte Power { get; set; }
         public ushort ACCZ { get; set; }
         public uint DataCountNo { get; set; }
@@ -24,13 +25,12 @@ namespace Parallel.Shared.DataTransferObjects
         {
             return "MessageSubType 9";
         }
-        // private class PowerParser : ICustomParser
-        // {
-        //     public object Parse(ParseInfo parseInfo)
-        //     {
-        //         ((GenericPacketSubtype9) parseInfo.ParsedObject).Alarm = parseInfo.Data[0] >> 4;
-        //         return (byte)(parseInfo.Data[0] & 0b00001111);
-        //     }
-        // }
+        private class PowerParser : ICustomParser
+        {
+            public object Parse(ParseInfo parseInfo)
+            {
+                return (byte)(parseInfo.Data[0] & 0b00001111);
+            }
+        }
     }
 }

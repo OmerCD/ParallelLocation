@@ -94,7 +94,6 @@ namespace MessageObjectRouter
             if (key != null && Types.TryGetValue(key, out var foundType) && foundType != null)
             {
                 return _elector.CreateObject(bytes, foundType);
-
             }
 
             return null;

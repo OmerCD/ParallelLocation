@@ -38,5 +38,18 @@ namespace Parallel.Shared.DataTransferObjects
                 return power;
             }
         }
+        private class PowerParserReverse : ICustomParser
+        {
+            public object Parse(ParseInfo parseInfo)
+            {
+                var power = (byte) (parseInfo.Data[0] >> 4);
+                if (power != 8)
+                {
+                    ((MessageType4) parseInfo.ParsedObject).Alarm =  (parseInfo.Data[0] & 0b00001111);
+                }
+
+                return power;
+            }
+        }
     }
 }

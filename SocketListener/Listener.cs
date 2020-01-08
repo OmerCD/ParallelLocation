@@ -14,6 +14,7 @@ namespace SocketListener
     {
         Socket Socket { get; set; }
         Guid SocketId { get; set; }
+        bool IsConnected { get; }
     }
     public class Client : IClient
     {
@@ -25,21 +26,68 @@ namespace SocketListener
 
         public Socket Socket { get; set; }
         public Guid SocketId { get; set; }
+
+        public bool IsConnected
+        {
+            get
+            {
+                bool part1 = Socket.Poll(1000, SelectMode.SelectRead);
+                bool part2 = (Socket.Available == 0);
+                return !part1 || !part2;
+            }
+        }
     }
     public class Listener : IListener
     {
-        private static readonly byte[] StartValues = new byte[] {240, 240, 240, 240, 240};
-        private static readonly byte[] EndValues = new byte[] {241, 241, 241, 241, 241};
+        private readonly byte[] _startValues;
+        private readonly byte[] _endValues;
         
-        private static readonly ConcurrentDictionary<Guid, IClient> _clients = new ConcurrentDictionary<Guid, IClient>();
+        private static readonly ConcurrentDictionary<Guid, IClient> Clients = new ConcurrentDictionary<Guid, IClient>();
+
+        public Listener(byte[] startValues, byte[] endValues)
+        {
+            _startValues = startValues;
+            _endValues = endValues;
+        }
+
+        public int ClientCount
+        {
+            get
+            {
+                RemoveDisconnectedClients();
+                return Clients.Count;
+            }
+        }
+
+        private static void RemoveDisconnectedClients()
+        {
+            var idList = new List<Guid>();
+            foreach (var client in Clients)
+            {
+                if (!client.Value.IsConnected)
+                {
+                    idList.Add(client.Key);
+                }
+            }
+
+            foreach (var guid in idList)
+            {
+                Clients.TryRemove(guid, out _);
+            }
+        }
 
         public void StartReceive(BindInformation bindInformation, Action<byte[]> messageReceived)
         {
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(bindInformation.Address), bindInformation.Port);
-            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            if (bindInformation == null)
+            {
+                return;
+            }
+
+            var endPoint = new IPEndPoint(IPAddress.Parse(bindInformation.Address), bindInformation.Port);
+            var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             listener.Bind(endPoint);
             listener.Listen(1000);
-            byte[] buffer = new byte[8192];
+            var buffer = new byte[8192];
 
             //Gelen bağlantıyı kabul etmek için asenkron bir işlem başlatır.
             listener.BeginAccept(OnAccept, new StateInfo(listener, messageReceived, buffer));
@@ -47,12 +95,12 @@ namespace SocketListener
 
         private void OnAccept(IAsyncResult ar)
         {
-            StateInfo stateInfo = (StateInfo) ar.AsyncState;
+            var stateInfo = (StateInfo) ar.AsyncState;
             stateInfo.Socket.BeginAccept(OnAccept, new StateInfo(stateInfo.Socket, stateInfo.MessageReceived, new byte[8192]));
             
             stateInfo.Socket = stateInfo.Socket.EndAccept(ar);
             stateInfo.ClientId = Guid.NewGuid();
-            _clients.TryAdd(stateInfo.ClientId, new Client(stateInfo.Socket, stateInfo.ClientId));
+            Clients.TryAdd(stateInfo.ClientId, new Client(stateInfo.Socket, stateInfo.ClientId));
 
             
             //Bağlı soketten veri akmaya başlar.
@@ -66,7 +114,17 @@ namespace SocketListener
         {
             int length;
             StateInfo stateInfo = (StateInfo) ar.AsyncState;
-            int bytesRead = stateInfo.Socket.EndReceive(ar);
+            int bytesRead = 0;
+            try
+            {
+                bytesRead = stateInfo.Socket.EndReceive(ar);
+            }
+            catch (SocketException ex)
+            {
+                Clients.TryRemove(stateInfo.ClientId, out _);
+                return;
+            }
+
             if (bytesRead > 0)
             {
                 byte[] received = stateInfo.Buffer[..bytesRead];
@@ -76,9 +134,9 @@ namespace SocketListener
                     received = stateInfo.LastPackageBuffer.Concat(received).ToArray();
                     stateInfo.LastPackageBuffer = Array.Empty<byte>();
                 }
-                var packages = GetPackages(received);
+                IAsyncEnumerable<PackageInfo> packages = GetPackages(received);
                 
-                await foreach (var package in packages)
+                await foreach (PackageInfo package in packages)
                 {
                     if (package.IsFinished)
                     {
@@ -96,36 +154,32 @@ namespace SocketListener
             stateInfo.Socket.BeginReceive(stateInfo.Buffer, 0, stateInfo.Buffer.Length, SocketFlags.None, OnReceive,
                 stateInfo);
         }
-        private static void SendResponsePackageToClient(Guid clientId, byte[] receivedData)
+        private static void SendResponsePackageToClient(Guid clientId, IReadOnlyList<byte> receivedData)
         {
-            if (!_clients.ContainsKey(clientId)) return;
+            if (!Clients.ContainsKey(clientId)) return;
             var responsePackage = new byte[15];
             var list = new List<byte> { 0, 1, 2, 3, 4 };
             var index = 0;
             list.ForEach(s => { responsePackage[index] = 250; index++; });
             list.ForEach(s => { responsePackage[index] = receivedData[s]; index++; });
             list.ForEach(s => { responsePackage[index] = 251; index++; });
-            _clients[clientId].Socket.Send(responsePackage, 0, index, SocketFlags.None);
+            Clients[clientId].Socket.Send(responsePackage, 0, index, SocketFlags.None);
         }
         private async IAsyncEnumerable<PackageInfo> GetPackages(byte[] received)
         {
             var lastIndex = 0;
 
-            int IndexOfStart()
-            {
-                return received.IndexOf(StartValues, lastIndex);
-            }
-
             while (lastIndex < received.Length)
             {
                 int first;
-                int last=0;
+                var last=0;
 
                 try
                 {
-                    first = await Task.Run(IndexOfStart);
-                    
-                    last = await Task.Run(() => received.IndexOf(EndValues, first));
+                    int tempValLast = lastIndex;
+                    first = await Task.Run(()=>received.IndexOf(_startValues, tempValLast)).ConfigureAwait(false);
+                    int tempValFirst = first;
+                    last = await Task.Run(() => received.IndexOf(_endValues, tempValFirst)).ConfigureAwait(false);
                  
                 }
                 catch (Exception e)
@@ -146,7 +200,7 @@ namespace SocketListener
 
                     yield break;
                 }
-                first += StartValues.Length;
+                first += _startValues.Length;
                 if (first > last)
                 {
                     break;
@@ -162,7 +216,7 @@ namespace SocketListener
                     Console.WriteLine(e);
                 }
                 yield return packageInfo;
-                lastIndex = last + EndValues.Length;
+                lastIndex = last + _endValues.Length;
             }
         }
     }

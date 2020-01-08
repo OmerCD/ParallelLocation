@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +21,7 @@ namespace Parallel.Main
         {
             _serviceCollection = new ServiceCollection();
 
-            IConfigurationBuilder BuilderAction(IConfigurationBuilder builder)
+            static IConfigurationBuilder BuilderAction(IConfigurationBuilder builder)
             {
                 return builder.SetBasePath(Path.Combine(AppContext.BaseDirectory))
 #if DEBUG
@@ -46,7 +47,8 @@ namespace Parallel.Main
                     services.AddHostedService<MainCycle>();
                     var configBuilder = new ConfigurationBuilder();
                     builderAction(configBuilder);
-                    var startUp = new Startup(configBuilder.Build());
+                    var cRoot = configBuilder.Build();
+                    var startUp = new Startup(cRoot);
                     startUp.ConfigureServices(services);
                 });
         }

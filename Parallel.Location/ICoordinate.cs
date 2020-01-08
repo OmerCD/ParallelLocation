@@ -2,8 +2,8 @@
 {
     public interface ICoordinate
     {
-        double X { get; }
-        double Z { get; }
-        double Y { get; }
+        double X { get; set; }
+        double Z { get; set; }
+        double Y { get; set; }
     }
 }

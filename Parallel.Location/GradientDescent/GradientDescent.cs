@@ -22,6 +22,8 @@ namespace Parallel.Location
             _anchorsDic = values.ToDictionary(x => x.Id);
         }
 
+        public IEnumerable<IAnchor> CurrentAnchors => _anchorsDic.Values;
+
         public ICoordinate GetResult(params IDistance[] distances)
         {
             (Vector<double> ranges, double[,] anchors) = CreateRangeArray(distances);
@@ -36,6 +38,10 @@ namespace Parallel.Location
             Vector<double> ranges = Vector<double>.Build.Dense(distances.Count);
             for (var i = 0; i < distances.Count; i++)
             {
+                if (!_anchorsDic.ContainsKey(distances[i].FromAnchorId))
+                {
+                    continue;
+                }
                 IAnchor currentAnchor = _anchorsDic[distances[i].FromAnchorId];
                 anchorMatrix[i, 0] = currentAnchor.X;
                 anchorMatrix[i, 1] = currentAnchor.Z;

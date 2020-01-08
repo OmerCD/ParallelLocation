@@ -20,6 +20,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\MessageObjectRouter\MessageObjectRouter.csproj" />
+        <ProjectReference Include="..\Parallel.Application\Parallel.Application.csproj" />
         <ProjectReference Include="..\Parallel.Location\Parallel.Location.csproj" />
         <ProjectReference Include="..\Parallel.Repository\Parallel.Repository.csproj" />
         <ProjectReference Include="..\Parallel.Shared\Parallel.Shared.csproj" />
@@ -30,6 +31,12 @@
 
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
