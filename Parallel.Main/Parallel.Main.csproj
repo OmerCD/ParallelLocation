@@ -16,6 +16,7 @@
         <PackageReference Include="NLog.Extensions.Logging" Version="1.6.1" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.0.0" />
         <PackageReference Include="ObjectDumper.NET" Version="2.4.19218.1" />
+        <PackageReference Include="Terminal.Gui" Version="0.24.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,6 +38,15 @@
       <None Update="appsettings.Development.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Remove="Terminal\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Terminal\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Terminal\**" />
     </ItemGroup>
 
 </Project>

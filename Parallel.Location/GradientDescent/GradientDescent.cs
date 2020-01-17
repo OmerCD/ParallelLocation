@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
@@ -20,6 +21,14 @@ namespace Parallel.Location
         public void SetAnchors(IAnchor[] values)
         {
             _anchorsDic = values.ToDictionary(x => x.Id);
+        }
+
+        public void SetAnchor(int anchorId, IAnchor value)
+        {
+            if (_anchorsDic.ContainsKey(anchorId))
+            {
+                _anchorsDic[anchorId] = value;
+            }
         }
 
         public IEnumerable<IAnchor> CurrentAnchors => _anchorsDic.Values;

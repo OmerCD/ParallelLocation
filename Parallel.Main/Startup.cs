@@ -29,6 +29,7 @@ namespace Parallel.Main
         public void ConfigureServices(IServiceCollection services)
         {
             var appSettings = _configuration.GetSection("AppSettings").Get<AppSettings>();
+            services.AddControllers();
             services.AddSingleton(appSettings);
             services.AddLogging(builder =>
             {
@@ -46,7 +47,7 @@ namespace Parallel.Main
 
         public void Configure(IApplicationBuilder app)
         {
-           
+            app.UseMvc();
         }
     }
 }

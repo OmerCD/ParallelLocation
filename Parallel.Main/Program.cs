@@ -32,9 +32,9 @@ namespace Parallel.Main
 #endif
             }
 
-//            CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
+           // CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
             CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
-            Console.ReadKey();
+            // Console.ReadKey();
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args,
@@ -58,6 +58,13 @@ namespace Parallel.Main
         {
             return WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration(builderAction)
+                .ConfigureServices(x =>
+                {
+                    var configBuilder = new ConfigurationBuilder();
+                    builderAction(configBuilder);
+                    var cRoot = configBuilder.Build();
+                    x.AddSingleton(cRoot);
+                })
                 .UseStartup<Startup>();
         }
     }
