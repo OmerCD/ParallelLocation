@@ -15,7 +15,7 @@ namespace Parallel.Main
         private MenuBarItem _menuBarItemMain;
         private MenuItem _menuItemClose;
 
-        private ListView _listViewConnectedClients;
+        private ConnectedClientsView _listViewConnectedClients;
 
         private ConnectionDetailView _connectionDetailView;
         public void InitializeTopMenuComponents(View parent)
@@ -53,13 +53,12 @@ namespace Parallel.Main
             };
             parent.Add(_labelListeningStatusValue);
             
-            _listViewConnectedClients = new ListView(new []{"SocketList"})
+            _listViewConnectedClients = new ConnectedClientsView()
             {
                 X = Pos.Left(_labelListeningStatusText),
                 Y = Pos.Bottom(_labelListeningStatusText),
                 Width = Dim.Percent(40),
                 Height = Dim.Percent(90),
-                AllowsMarking = true
             };
             parent.Add(_listViewConnectedClients);
 

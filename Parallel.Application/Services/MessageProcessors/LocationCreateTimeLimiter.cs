@@ -27,7 +27,7 @@ namespace Parallel.Application.Services.MessageProcessors
             TTagId tagId = _getTagId(message);
             if (!_tagDictionary.ContainsKey(tagId))
             {
-                var tagTimeController = new TagTimeController(10000, tagId);
+                var tagTimeController = new TagTimeController(3000, tagId);
                 _tagDictionary.Add(tagId, tagTimeController);
                 tagTimeController.OnTagLocationReady+=TagTimeControllerOnTagLocationReady;
             }
@@ -36,7 +36,7 @@ namespace Parallel.Application.Services.MessageProcessors
             {
                 _tagDictionary[tagId].TryAdd(readerId, new List<TMessage>());
             }
-            
+
             _tagDictionary[tagId][readerId].Add(message);
         }
 

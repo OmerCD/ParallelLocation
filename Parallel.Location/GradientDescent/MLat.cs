@@ -108,7 +108,7 @@ namespace Parallel.Location
         }
 
         public static GradientDescentResult Mlat(Matrix<double> anchorsIn, Vector<double> rangesIn,
-            Matrix<double> boundsIn = null, int nTrial = 1000, double alpha = 0.001, double timeThreshold = 0)
+            Matrix<double> boundsIn = null, int nTrial = 200, double alpha = 0.01, double timeThreshold = 0)
         {
             GradientDescentResult gradientDescentResult = GradientDescent(anchorsIn, rangesIn, boundsIn, nTrial, alpha, timeThreshold);
 

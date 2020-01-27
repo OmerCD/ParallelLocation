@@ -52,7 +52,7 @@ namespace Parallel.Application.Services
             foreach (Type type in types)
             {
                 var serviceType = messageServiceType.MakeGenericType(type);
-                services.AddScoped(serviceType, type);
+                services.AddSingleton(serviceType, type);
                 serviceTypes.Add(serviceType);
             }
 

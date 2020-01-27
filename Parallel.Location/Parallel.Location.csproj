@@ -5,11 +5,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Accord.Extensions.Statistics" Version="3.0.1" />
+      <PackageReference Include="Accord.Statistics" Version="3.8.0" />
+      <PackageReference Include="MathNet.Filtering.Kalman" Version="0.6.0" />
       <PackageReference Include="MathNet.Numerics" Version="4.9.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <Reference Include="GeneralMatrix, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>GeneralMatrix.dll</HintPath>
+      </Reference>
       <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
         <HintPath>C:\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\3.0.0\ref\netcoreapp3.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
       </Reference>

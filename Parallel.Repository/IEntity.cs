@@ -32,11 +32,11 @@ namespace Parallel.Repository
 
     public abstract class SQLEntity : IEntity<int>
     {
-        [Key] public object Id { get; set; }
+        [Key] public virtual object Id { get; set; }
     }
 
     public abstract class MongoEntity : IEntity<ObjectId>
     {
-        [BsonId] public object Id { get; set; }
+        [BsonId] public virtual object Id { get; set; }
     }
 }

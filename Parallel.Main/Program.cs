@@ -2,6 +2,7 @@
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using Parallel.Location;
+using Parallel.Application.ValueObjects;
 using Parallel.Repository;
 
 namespace Parallel.Main
@@ -32,9 +34,14 @@ namespace Parallel.Main
 #endif
             }
 
-           // CreateWebHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
-            CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
-            // Console.ReadKey();
+          var builder =  CreateWebHostBuilder(args, (b) => BuilderAction(b));
+
+          var host = builder.Build();
+          var mainCycle = host.Services.GetService<MainCycle>();
+          Task.Run(mainCycle.StartListening);
+          host.Run();
+            // CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
+             Console.ReadKey();
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args,
@@ -56,16 +63,23 @@ namespace Parallel.Main
         private static IWebHostBuilder CreateWebHostBuilder(string[] args,
             Action<IConfigurationBuilder> builderAction)
         {
-            return WebHost.CreateDefaultBuilder(args)
+            IConfigurationRoot config;
+            var configBuilder = new ConfigurationBuilder();
+            builderAction(configBuilder);
+            config = configBuilder.Build();
+            var host = WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration(builderAction)
                 .ConfigureServices(x =>
                 {
-                    var configBuilder = new ConfigurationBuilder();
-                    builderAction(configBuilder);
-                    var cRoot = configBuilder.Build();
-                    x.AddSingleton(cRoot);
+                    x.AddMvc(options => options.EnableEndpointRouting = false);
+                    x.AddSignalR();
+                    x.AddSingleton<MainCycle>();
+                    x.AddSingleton(config);
                 })
                 .UseStartup<Startup>();
+            var apiConInfo = config.GetSection("AppSettings").Get<AppSettings>().ApiConnectionInfo;
+            host.UseUrls(apiConInfo.IpAddress + ':' + apiConInfo.Port);
+            return host;
         }
     }
 

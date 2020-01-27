@@ -33,7 +33,7 @@ namespace Parallel.Location
 
         public IEnumerable<IAnchor> CurrentAnchors => _anchorsDic.Values;
 
-        public ICoordinate GetResult(params IDistance[] distances)
+        public ICoordinate GetResult(int objectId, params IDistance[] distances)
         {
             (Vector<double> ranges, double[,] anchors) = CreateRangeArray(distances);
             MLAT.GradientDescentResult gradientResult = MLAT.Mlat(DenseMatrix.OfArray(anchors), ranges, null);

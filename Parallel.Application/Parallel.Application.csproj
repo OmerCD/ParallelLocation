@@ -10,4 +10,9 @@
       <ProjectReference Include="..\Parallel.Shared\Parallel.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
+      <PackageReference Include="ObjectDumper.NET" Version="2.4.19218.1" />
+    </ItemGroup>
+
 </Project>

@@ -16,7 +16,7 @@ namespace SocketListener
         private readonly byte[] _endValues;
 
         private static readonly ConcurrentDictionary<Guid, IClient> Clients = new ConcurrentDictionary<Guid, IClient>();
-        private Socket _listener;
+        private TcpListenerEx _listener;
 
         public Listener(byte[] startValues, byte[] endValues)
         {
@@ -63,40 +63,56 @@ namespace SocketListener
             }
 
             var endPoint = new IPEndPoint(IPAddress.Parse(bindInformation.Address), bindInformation.Port);
-            _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _listener.Bind(endPoint);
-            _listener.Listen(1000);
+            _listener = new TcpListenerEx(endPoint);
+            _listener.Start();
             Console.WriteLine($"Started Listening : {bindInformation.Address} : {bindInformation.Port}");
             var buffer = new byte[8192];
 
             //Gelen bağlantıyı kabul etmek için asenkron bir işlem başlatır.
-            _listener.BeginAccept(OnAccept, new StateInfo(_listener, messageReceived, buffer));
+            _listener.BeginAcceptSocket(OnAccept, Tuple.Create(_listener, messageReceived));
             Console.WriteLine("Started Accepting Clients");
         }
 
         public Action<IClient> ClientConnected { get; set; }
         public Action<IClient> ClientDisconnected { get; set; }
+
         public void StopListener()
         {
-            _listener.Close();
+            foreach (var client in Clients)
+            {
+                if (client.Value.Socket.Connected)
+                {
+                    client.Value.Socket.Shutdown(SocketShutdown.Both);
+                    client.Value.Socket.Close();
+                }
+            }
+
+            _listener.Stop();
+            Clients.Clear();
         }
 
         private void OnAccept(IAsyncResult ar)
         {
-            var stateInfo = (StateInfo) ar.AsyncState;
+            var ( tcpListener, messageReceived) = (Tuple<TcpListenerEx, Action<byte[]>>) ar.AsyncState;
             try
             {
-                stateInfo.Socket.BeginAccept(OnAccept,
-                    new StateInfo(stateInfo.Socket, stateInfo.MessageReceived, new byte[8192]));
+                if (tcpListener.Active)
+                {
+                    tcpListener.BeginAcceptSocket(OnAccept, Tuple.Create(tcpListener, messageReceived));
+                }
+                else return;
             }
             catch (ObjectDisposedException ex)
             {
-                Clients.TryRemove(stateInfo.ClientId, out _);
+                // Clients.TryRemove(stateInfo.ClientId, out _);
                 return;
             }
 
-            stateInfo.Socket = stateInfo.Socket.EndAccept(ar);
+            var stateInfo = new StateInfo();
+            stateInfo.Socket = tcpListener.EndAcceptSocket(ar);
             stateInfo.ClientId = Guid.NewGuid();
+            stateInfo.Buffer = new byte[8192];
+            stateInfo.MessageReceived = messageReceived;
             var client = new Client(stateInfo.Socket, stateInfo.ClientId);
             if (Clients.TryAdd(stateInfo.ClientId, client))
             {
@@ -112,12 +128,14 @@ namespace SocketListener
         //İşlem tamamlandığında çağırılacak
         private async void OnReceive(IAsyncResult ar)
         {
-            int length;
             StateInfo stateInfo = (StateInfo) ar.AsyncState;
             int bytesRead = 0;
             try
             {
-                bytesRead = stateInfo.Socket.EndReceive(ar);
+                if (stateInfo.Socket.Connected)
+                {
+                    bytesRead = stateInfo.Socket.EndReceive(ar);
+                }
             }
             catch (SocketException ex)
             {
@@ -156,8 +174,11 @@ namespace SocketListener
                 stateInfo.Buffer = new byte[8192];
             }
 
-            stateInfo.Socket.BeginReceive(stateInfo.Buffer, 0, stateInfo.Buffer.Length, SocketFlags.None, OnReceive,
-                stateInfo);
+            if (stateInfo.Socket.Connected)
+            {
+                stateInfo.Socket.BeginReceive(stateInfo.Buffer, 0, stateInfo.Buffer.Length, SocketFlags.None, OnReceive,
+                    stateInfo);
+            }
         }
 
         private static void SendResponsePackageToClient(Guid clientId, IReadOnlyList<byte> receivedData)
@@ -204,6 +225,12 @@ namespace SocketListener
                 {
                     Console.WriteLine(e);
                     throw;
+                }
+
+                if (lastIndex > 0 && first == -1)
+                {
+                    yield return new PackageInfo(received[lastIndex..], false);
+                    yield break;
                 }
 
                 if (last == -1)

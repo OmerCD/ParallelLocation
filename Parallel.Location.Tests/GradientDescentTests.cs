@@ -28,7 +28,7 @@ namespace Parallel.Location.Tests
                 new DistanceBase(3, 37.58),
                 new DistanceBase(4, 56.79)
             };
-            ICoordinate result = gradientDescent.GetResult(node);
+            ICoordinate result = gradientDescent.GetResult(0,node);
             Assert.That(result.X, Is.EqualTo(26).Within(1.5));
             Assert.That(result.Y, Is.EqualTo(0).Within(3));
             Assert.That(result.Z, Is.EqualTo(34).Within(1.5));
@@ -45,7 +45,7 @@ namespace Parallel.Location.Tests
                 new DistanceBase(2,54.08),
 
             };
-            ICoordinate result = gradientDescent.GetResult(node);
+            ICoordinate result = gradientDescent.GetResult(0,node);
             Assert.That(result.X, Is.EqualTo(26).Within(1.5));
             Assert.That(result.Y, Is.EqualTo(0).Within(3));
             Assert.That(result.Z, Is.EqualTo(34).Within(1.5));
@@ -62,7 +62,7 @@ namespace Parallel.Location.Tests
                 new DistanceBase(2,7.07),
 
             };
-            ICoordinate result = gradientDescent.GetResult(node);
+            ICoordinate result = gradientDescent.GetResult(0,node);
             Assert.That(result.X, Is.EqualTo(44).Within(4));
             Assert.That(result.Y, Is.EqualTo(0).Within(3));
             Assert.That(result.Z, Is.EqualTo(85).Within(4));

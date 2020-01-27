@@ -1,24 +1,16 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using MessageObjectRouter;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Parallel.Application.Entities.Database.Mongo;
 using Parallel.Application.Services.Interfaces;
-using Parallel.Location;
-using Parallel.Main.ValueObjects;
-using Parallel.Repository;
-using Parallel.Shared.DataTransferObjects;
-using SocketCommunication.Models;
+using Parallel.Application.ValueObjects;
 using SocketListener;
-using Terminal.Gui;
 
 namespace Parallel.Main
 {
@@ -30,8 +22,10 @@ namespace Parallel.Main
         private readonly IProcessManager _processManager;
         private readonly IListener _listener;
         private bool _isListening;
+        private bool _isGuiActive;
 
         private readonly IDictionary<int, IClient> _clients;
+        private int _clientIndexTracker = 0;
 
         public MainCycle(ILogger<MainCycle> logger,
             IParseRouter<byte[]> parseRouter, AppSettings appSettings, IProcessManager processManager)
@@ -41,7 +35,7 @@ namespace Parallel.Main
             _appSettings = appSettings;
             _processManager = processManager;
             _listener = new Listener(new byte[] {240, 240, 240, 240, 240}, new byte[] {241, 241, 241, 241, 241});
-            _clients = new Dictionary<int, IClient>();
+            _clients = new ConcurrentDictionary<int, IClient>();
         }
 
         private void Close()
@@ -49,58 +43,67 @@ namespace Parallel.Main
             Terminal.Gui.Application.End(null);
         }
 
-        private void StartListening()
+        public void StartListening()
         {
             _clients.Clear();
             if (_isListening)
             {
-                _listener.ClientConnected -= ClientConnected;
-                _listener.ClientDisconnected -= ClientDisconnected;
+              
                 _listener.StopListener();
-                _labelListeningStatusValue.Text = "offline";
-                _menuItemStartListening.Title = "_Start Listening";
-                _listViewConnectedClients.SetSource(null);
-                _listViewConnectedClients.SelectedItem = -1;
-                _listViewConnectedClients.SelectedChanged-=ListViewConnectedClientsOnSelectedChanged;
-                _labelConnectedClientCountValue.Text = "0";
+                if (_isGuiActive)
+                {
+                    _listener.ClientConnected -= ClientConnected;
+                    _listener.ClientDisconnected -= ClientDisconnected;
+                    _labelListeningStatusValue.Text = "offline";
+                    _menuItemStartListening.Title = "_Start Listening";
+                    _listViewConnectedClients.ClearClients();
+                    _listViewConnectedClients.ClientSelected -= ListViewConnectedClientsOnSelectedChanged;
+                    _labelConnectedClientCountValue.Text = "0";
+                }
+                
                 _isListening = false;
             }
             else
             {
-                _listener.ClientConnected += ClientConnected;
-                _listener.ClientDisconnected += ClientDisconnected;
-                _listViewConnectedClients.SelectedChanged+=ListViewConnectedClientsOnSelectedChanged;
+         
+                if (_isGuiActive)
+                {
+                    _listener.ClientConnected += ClientConnected;
+                    _listener.ClientDisconnected += ClientDisconnected;
+                    _listViewConnectedClients.ClientSelected += ListViewConnectedClientsOnSelectedChanged;
+                    _labelListeningStatusValue.Text = "online";
+                    _menuItemStartListening.Title = "_Stop Listening";
+                }
                 _listener.StartReceive(
                     new BindInformation(_appSettings.ConnectionInfo.Port, _appSettings.ConnectionInfo.IpAddress),
                     ReceiveData);
-                _labelListeningStatusValue.Text = "online";
-                _menuItemStartListening.Title = "_Stop Listening";
+   
                 _isListening = true;
             }
         }
 
-        private void ListViewConnectedClientsOnSelectedChanged()
+        private void ListViewConnectedClientsOnSelectedChanged(IClient client)
         {
-            var test = _listViewConnectedClients.SelectedItem;
+            _connectionDetailView.SetDetails(client);
         }
 
         private void ClientDisconnected(IClient obj)
         {
-            List<string> source = _listener.ConnectedClients.Select(GetClientInfoText).ToList();
-            _listViewConnectedClients.SetSource(source);
+            _listViewConnectedClients.RemoveClient(obj.SocketId);
             _listViewConnectedClients.SetNeedsDisplay();
             _labelConnectedClientCountValue.Text = _listener.ClientCount.ToString();
+            _clients.Remove(_clients.FirstOrDefault(x => x.Value.SocketId == obj.SocketId));
         }
 
         private string GetClientInfoText(IClient client)
         {
             return
-                $"{nameof(client.SocketId)}:{client.SocketId}";
+                $"{client.SocketId}";
         }
 
         private void ClientConnected(IClient client)
         {
-            _listViewConnectedClients.SetSource(_listener.ConnectedClients.Select(GetClientInfoText).ToList());
+            _listViewConnectedClients.AddClient(client);
             _labelConnectedClientCountValue.Text = _listener.ClientCount.ToString();
             _listViewConnectedClients.SetNeedsDisplay();
         }
@@ -110,6 +113,7 @@ namespace Parallel.Main
             try
             {
                 InitializeGUI();
+                _isGuiActive = true;
             }
             catch (Exception ex)
             {
@@ -131,6 +135,11 @@ namespace Parallel.Main
 
         private void ReceiveData(byte[] received)
         {
+            var message = _parseRouter.GetObject(received);
+            if (message != null)
+            {
+                _processManager.Handle(message);
+            }
         }
     }
 }

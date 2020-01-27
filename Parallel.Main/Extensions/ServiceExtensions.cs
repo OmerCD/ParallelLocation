@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fingerprinting;
 using MessageObjectRouter;
 using Microsoft.Extensions.DependencyInjection;
 using Parallel.Location;
+using Parallel.Location.ParticleAreaFilter;
+using Parallel.Location.ParticleFilter;
 using Parallel.Shared.DataTransferObjects;
 using TeltonikaParser;
 
@@ -14,16 +17,34 @@ namespace Parallel.Main.Extensions
         public static IServiceCollection AddLocationCalculatorRouter(this IServiceCollection services)
         {
             var locationBuilder = new LocationCalculatorBuilder<GradientDescent, Anchor>();
-            GradientDescent gradientDescent = locationBuilder.WithAnchors(
-                    new Anchor(6, 12, 0, 201),
-                    new Anchor(6, 0, 0, 211),
-                    new Anchor(8, 0, 0, 102),
-                    new Anchor(4, 12, 0, 103),
-                    new Anchor(0, 2, 0, 601))
-                .Build();
+            var anchors = new IAnchor[]
+            {
+                new Anchor(925.3, 398.3, 92, 208),
+                new Anchor(0, 458.5, 76.4, 211),
+                new Anchor(905.8, 0, 1.5, 204),
+                new Anchor(53.8, 73.4, 92, 206)
+            };
+            // GradientDescent gradientDescent = locationBuilder.WithAnchors(
+            //         new Anchor(53.8, 73.4, 92, 208),
+            //         new Anchor(905.8, 0, 1.5, 211),
+            //         new Anchor(0, 458.5, 76.4, 204),
+            //         new Anchor(925.3, 398.3, 92, 206))
+            //     .Build();
+            GradientDescent gradientDescent = locationBuilder.WithAnchors(anchors).Build();
+            
+            
+            var particleFilterBuilder = new LocationCalculatorBuilder<ParticleFilter, Anchor>(new ParticleFilter(3500, 150));
+            var particleFilter = particleFilterBuilder.WithAnchors(anchors).Build();
+            
+            var particleAreaFilterBuilder = new LocationCalculatorBuilder<ParticleAreaFilter, Anchor>(new ParticleAreaFilter(3500, 150));
+            var particleAreaFilter = particleAreaFilterBuilder.WithAnchors(anchors).Build();
+            
+            var comexBuilder = new LocationCalculatorBuilder<ComexCalculator, Anchor>();
+            var comex = comexBuilder.WithAnchors(anchors).Build();
+
             services.AddLocationCalculatorRouter(builder =>
             {
-                builder.AddLocationCalculator<MessageType4>(gradientDescent);
+                builder.AddLocationCalculator<MessageType4>(particleAreaFilter);
             });
             return services;
         }
