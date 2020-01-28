@@ -57,7 +57,7 @@ namespace Parallel.Location.ParticleAreaFilter
             return difference < (Math.Pow(radius1, 2) + Math.Pow(radius2, 2));
         }
 
-        private bool IsInsideOfSphere(ICoordinate coordinate, ICoordinate circleCoordinate, double radius)
+        private static bool IsInsideOfSphere(ICoordinate coordinate, ICoordinate circleCoordinate, double radius)
         {
             var dx = Math.Pow(coordinate.X - circleCoordinate.X, 2);
             var dy = Math.Pow(coordinate.Y - circleCoordinate.Y, 2);
@@ -162,7 +162,7 @@ namespace Parallel.Location.ParticleAreaFilter
                 });
             }
 
-            var result = GenerateCoordinates(distances, particles, out IList<PJayParticle> trainedParticles, doesExist);
+            var result = GenerateCoordinates2(distances, particles, out IList<PJayParticle> trainedParticles, doesExist);
             var averageX = trainedParticles.Average(x => x.X);
             var averageY = trainedParticles.Average(x => x.Y);
 
@@ -234,6 +234,51 @@ namespace Parallel.Location.ParticleAreaFilter
             }
         }
 
+        private ICoordinate GenerateCoordinates2(IEnumerable<IDistance> distances, IList<PJayParticle> particles,
+            out IList<PJayParticle> trainedParticles, bool secondTime)
+        {
+            IDistance[] distanceArray = distances.ToArray();
+            var maxWeight = 0;
+            foreach (PJayParticle particle in particles)
+            {
+                foreach (IDistance distance in distanceArray)
+                {
+                    IAnchor anchor = _anchors[distance.FromAnchorId];
+                    var realDistance = distance.Distance;
+                    if (Math.Abs(anchor.Y) > 0.000001)
+                    {
+                        realDistance = Math.Sqrt(Math.Pow(distance.Distance, 2) - Math.Pow(anchor.Y, 2));
+                    }
+                    if (IsInsideOfSphere(new Coordinate(particle.X, particle.Y, 0),anchor, realDistance))
+                    {
+                        particle.Weight++;
+                    }
+
+                    if (maxWeight < particle.Weight)
+                    {
+                        maxWeight = particle.Weight;
+                    }
+                }
+            }
+
+            var weighted = particles.Where(x => x.Weight == maxWeight);
+            var count = 0;
+            var summed = new Coordinate(0,0,0);
+            var pJayParticles = weighted.ToList();
+            foreach (var particle in pJayParticles)
+            {
+                summed.X += particle.X;
+                summed.Z += particle.Y;
+                particle.Weight = 0;
+                count++;
+            }
+
+            summed.X /= count;
+            summed.Z /= count;
+
+            trainedParticles = pJayParticles;
+            return summed;
+        }
         private ICoordinate GenerateCoordinates(IEnumerable<IDistance> distances, IList<PJayParticle> particles,
             out IList<PJayParticle> trainedParticles, bool secondTime)
         {

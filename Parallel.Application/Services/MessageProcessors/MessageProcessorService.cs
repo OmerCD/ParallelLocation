@@ -64,38 +64,40 @@ namespace Parallel.Application.Services.MessageProcessors
                         };
                     }
 
+
+                    ICoordinate coordinate = calculator.GetResult(messages.First().MobilNodeId, distances);
+                    if (coordinate == null)
+                    {
+                        return;
+                    }
+
+                    var locationEntity = new LocationRecord
+                    {
+                        X = coordinate.X,
+                        Y = coordinate.Y,
+                        Z = coordinate.Z,
+                        MessageRecords = messageRecords,
+                        TagId = messages[0].MobilNodeId
+                    };
+                    // _locationRepository.Add(locationEntity);
+                    // _databaseContext.SaveChanges();
+                    var anchors = new List<AnchorInfo>();
+                    var currentAnchors = calculator.CurrentAnchors;
+                    foreach (var distance in distances)
+                    {
+                        var currentAnchor = currentAnchors.FirstOrDefault(x => x.Id == distance.FromAnchorId);
+                        anchors.Add(new AnchorInfo
+                        {
+                            Radius = distance.Distance,
+                            X = currentAnchor.X,
+                            Y = currentAnchor.Y,
+                            Z = currentAnchor.Z,
+                            Name = currentAnchor.Id.ToString()
+                        });
+                    }
+
                     if (messages[0].MobilNodeId == 35002)
                     {
-                        ICoordinate coordinate = calculator.GetResult(messages.First().MobilNodeId, distances);
-                        if (coordinate == null)
-                        {
-                            return;
-                        }
-
-                        var locationEntity = new LocationRecord
-                        {
-                            X = coordinate.X,
-                            Y = coordinate.Y,
-                            Z = coordinate.Z,
-                            MessageRecords = messageRecords,
-                            TagId = messages[0].MobilNodeId
-                        };
-                        // _locationRepository.Add(locationEntity);
-                        // _databaseContext.SaveChanges();
-                        var anchors = new List<AnchorInfo>();
-                        var currentAnchors = calculator.CurrentAnchors;
-                        foreach (var distance in distances)
-                        {
-                            var currentAnchor = currentAnchors.FirstOrDefault(x => x.Id == distance.FromAnchorId);
-                            anchors.Add(new AnchorInfo
-                            {
-                                Radius = distance.Distance,
-                                X = currentAnchor.X,
-                                Y = currentAnchor.Y,
-                                Z = currentAnchor.Z,
-                                Name = currentAnchor.Id.ToString()
-                            });
-                        }
                         _locationHubContext.Clients.All.SendCoreAsync(_appSettings.SignalRHub,
                             new object[]
                             {
@@ -103,8 +105,6 @@ namespace Parallel.Application.Services.MessageProcessors
                                     locationEntity.Y, anchors)
                             });
                     }
-                  
-                    
                 }
             }
         }

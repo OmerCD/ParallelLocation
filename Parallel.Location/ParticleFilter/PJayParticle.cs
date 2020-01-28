@@ -7,6 +7,7 @@ namespace Parallel.Location.ParticleFilter
         public double X { get; set; }
         public double Y { get; set; }
         public int NumberOfCircleDistances { get; private set; }
+        public int Weight { get; set; }
 
         public PJayParticle(double x, double y,
             int numberOfCircleDistances = 0)
