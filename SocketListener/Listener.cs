@@ -18,6 +18,12 @@ namespace SocketListener
         private static readonly ConcurrentDictionary<Guid, IClient> Clients = new ConcurrentDictionary<Guid, IClient>();
         private TcpListenerEx _listener;
 
+        public Listener(bool isOnline)
+        {
+            _startValues = isOnline ? new byte[] {240, 240, 240, 240, 240} : new byte[] {250, 250, 250, 250, 250};
+            _endValues = isOnline ? new byte[] {241, 241, 241, 241, 241} : new byte[] {251, 251, 251, 251, 251};
+        }
+
         public Listener(byte[] startValues, byte[] endValues)
         {
             _startValues = startValues;
@@ -184,6 +190,8 @@ namespace SocketListener
         private static void SendResponsePackageToClient(Guid clientId, IReadOnlyList<byte> receivedData)
         {
             if (!Clients.ContainsKey(clientId)) return;
+            if (!Clients[clientId].IsConnected) return;
+
             var responsePackage = new byte[15];
             var list = new List<byte> {0, 1, 2, 3, 4};
             var index = 0;

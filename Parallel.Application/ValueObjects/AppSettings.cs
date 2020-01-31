@@ -6,6 +6,8 @@
         public ApiConnectionInfo ApiConnectionInfo { get; set; }
         public string SignalRHub { get; set; }
         public DatabaseInfo DatabaseInfo { get; set; }
+
+        public QueueConnectInfo QueueConnectInfo { get; set; }
     }
 
     public class DatabaseInfo
@@ -23,11 +25,24 @@
     {
         public string IpAddress { get; set; }
         public int Port { get; set; }
+        public bool IsOnline { get; set; }
+
+        public override string ToString()
+        {
+            return IsOnline ? "OnlineMessages" : "OfflineMessages";
+        }
     }
 
     public class ApiConnectionInfo
     {
         public string IpAddress { get; set; }
         public int Port { get; set; }
+    }
+
+    public class QueueConnectInfo
+    {
+        public string HostName { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
     }
 }

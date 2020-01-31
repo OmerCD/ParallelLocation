@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <UserSecretsId>dotnet-Listener.WorkerService-4691628F-174E-4E8C-A9BC-70664E2D5287</UserSecretsId>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="EasyNetQ" Version="3.8.0-alpha0041" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.1" />
+        <PackageReference Include="NLog" Version="4.6.8" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="1.6.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Parallel.Application\Parallel.Application.csproj" />
+      <ProjectReference Include="..\QueueManagement\QueueManagement.csproj" />
+      <ProjectReference Include="..\SocketListener\SocketListener.csproj" />
+    </ItemGroup>
+</Project>

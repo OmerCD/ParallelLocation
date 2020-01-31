@@ -146,9 +146,9 @@ namespace Parallel.Location.ParticleAreaFilter
                 particles = new List<PJayParticle>(_numberOfParticles);
                 for (int i = 0; i < _numberOfParticles; i++)
                 {
-                    double x = Parallel.Location.ParticleFilter.ParticleFilter.Random.Next((int) minW,
+                    double x = ParticleFilter.ParticleFilter.Random.Next((int) minW,
                         (int) maxW);
-                    double y = Parallel.Location.ParticleFilter.ParticleFilter.Random.Next((int) minH,
+                    double y = ParticleFilter.ParticleFilter.Random.Next((int) minH,
                         (int) maxH);
 
                     var particle = new PJayParticle(x, y);
@@ -168,9 +168,9 @@ namespace Parallel.Location.ParticleAreaFilter
 
             for (int i = trainedParticles.Count; i < _numberOfParticles; i++)
             {
-                double x = averageX + Parallel.Location.ParticleFilter.ParticleFilter.Random.Next(
+                double x = averageX + ParticleFilter.ParticleFilter.Random.Next(
                                -_numberOfCircleDistances, _numberOfCircleDistances);
-                double y = averageY + Parallel.Location.ParticleFilter.ParticleFilter.Random.Next(
+                double y = averageY + ParticleFilter.ParticleFilter.Random.Next(
                                -_numberOfCircleDistances, _numberOfCircleDistances);
 
                 var particle = new PJayParticle(x, y);
@@ -335,10 +335,10 @@ namespace Parallel.Location.ParticleAreaFilter
                 {
                     i %= currentParticleNumber;
                     var xx = newParticles[i].X +
-                             Parallel.Location.ParticleFilter.ParticleFilter.Random.Next(-_numberOfCircleDistances,
+                             ParticleFilter.ParticleFilter.Random.Next(-_numberOfCircleDistances,
                                  _numberOfCircleDistances);
                     var zz = newParticles[i].Y +
-                             Parallel.Location.ParticleFilter.ParticleFilter.Random.Next(-_numberOfCircleDistances,
+                             ParticleFilter.ParticleFilter.Random.Next(-_numberOfCircleDistances,
                                  _numberOfCircleDistances);
 
                     var particle = new PJayParticle(xx, zz);

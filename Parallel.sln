@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parallel.Shared", "Parallel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parallel.Application", "Parallel.Application\Parallel.Application.csproj", "{2E3C920F-2D42-4B78-8BA0-CB98B9C23253}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueManagement", "QueueManagement\QueueManagement.csproj", "{CE5BBF60-6FA9-438B-9D75-BB780FDC0066}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listener.WorkerService", "Listener.WorkerService\Listener.WorkerService.csproj", "{3FF46949-D81C-40AE-ADAD-D401194E9E91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{2E3C920F-2D42-4B78-8BA0-CB98B9C23253}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E3C920F-2D42-4B78-8BA0-CB98B9C23253}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E3C920F-2D42-4B78-8BA0-CB98B9C23253}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE5BBF60-6FA9-438B-9D75-BB780FDC0066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE5BBF60-6FA9-438B-9D75-BB780FDC0066}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE5BBF60-6FA9-438B-9D75-BB780FDC0066}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE5BBF60-6FA9-438B-9D75-BB780FDC0066}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FF46949-D81C-40AE-ADAD-D401194E9E91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FF46949-D81C-40AE-ADAD-D401194E9E91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FF46949-D81C-40AE-ADAD-D401194E9E91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FF46949-D81C-40AE-ADAD-D401194E9E91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
