@@ -2,11 +2,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Parallel.Application.ValueObjects;
+using Parallel.Shared.PacketObjects;
 using QueueManagement;
 using RabbitMQ.Client.Events;
 using SocketListener;
@@ -81,8 +84,18 @@ namespace Listener.WorkerService
 
         private void ReceiveData(byte[] received)
         {
-            Console.WriteLine(string.Join(",", received));
-            _queueOperation.SendMessageToQueue(received, _exchangeName);
+            var date = DateTime.Now;
+            Console.WriteLine($"{date} - {string.Join(",", received)}");
+
+            PacketFromQueue packetFromQueue = new PacketFromQueue
+            {
+                Buffer = received,
+                ReceiveDate = date,
+                QueueDate = date,
+                IsOnline = _appSettings.ConnectionInfo.IsOnline
+            };
+
+            _queueOperation.SendMessageToQueue(packetFromQueue, _exchangeName );
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

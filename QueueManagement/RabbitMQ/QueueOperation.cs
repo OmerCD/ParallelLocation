@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Parallel.Shared.Credentials;
 using RabbitMQ.Client;
@@ -13,10 +14,13 @@ namespace QueueManagement.RabbitMQ
         private IModel _model;
         private ConnectionFactory _connectionFactory;
         private readonly QueueCredential _queueCredential;
+        
+        private readonly ILogger<QueueOperation> _logger;
 
-        public QueueOperation(QueueCredential queueCredential)
+        public QueueOperation(QueueCredential queueCredential, ILogger<QueueOperation> logger = null)
         {
             _queueCredential = queueCredential;
+            _logger = logger;
         }
 
         public void CreateConnection()
@@ -60,12 +64,22 @@ namespace QueueManagement.RabbitMQ
 
         public void SendMessageToQueue(object message, string exchangeName, string routingKey = "")
         {
-            if (_model == null) return;
-            var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-            _model.BasicPublish(exchangeName, routingKey, null, body);
+            try
+            {
+                if (_model == null) return;
+                var basicProperties = _model.CreateBasicProperties();
+                basicProperties.Persistent = true;
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+                _model.BasicPublish(exchangeName, routingKey, basicProperties, body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MessagQueueOperationeSender.SendMessageToQueue Values : " + JsonConvert.SerializeObject(message));
+            }
         }
 
-        public void GetMessageFromQueue(string queueName)
+        public void StartReceiving(string queueName)
         {
             if (_model == null) return;
             var consumer = new EventingBasicConsumer(_model);
