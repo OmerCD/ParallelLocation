@@ -97,6 +97,7 @@ namespace Parallel.Location.ParticleAreaFilter
         {
             if (CheckIfAnchorsColliding(distances))
             {
+                // TODO: Kesişim yoksa ParticleFilter algoritmasının çalışması gerekiyor.
                 return null;
             }
 
@@ -234,6 +235,15 @@ namespace Parallel.Location.ParticleAreaFilter
             }
         }
 
+        /// <summary>
+        /// Yapay Zekâ
+        /// Rastgele noktalar oluşturuyor.
+        /// </summary>
+        /// <param name="distances"></param>
+        /// <param name="particles"></param>
+        /// <param name="trainedParticles"></param>
+        /// <param name="secondTime"></param>
+        /// <returns></returns>
         private ICoordinate GenerateCoordinates2(IEnumerable<IDistance> distances, IList<PJayParticle> particles,
             out IList<PJayParticle> trainedParticles, bool secondTime)
         {

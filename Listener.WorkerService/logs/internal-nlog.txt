@@ -93,3 +93,88 @@
 2020-02-04 15:53:22.2218 Info Found 24 configuration items
 2020-02-04 15:53:22.2414 Info Configuration initialized.
 2020-02-04 15:53:22.2414 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:40:19.8995 Info Message Template Auto Format enabled
+2020-02-14 17:40:20.0334 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:40:20.0909 Info Found 24 configuration items
+2020-02-14 17:40:20.1184 Info Configuration initialized.
+2020-02-14 17:40:20.1184 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:41:54.5107 Info Message Template Auto Format enabled
+2020-02-14 17:41:54.5687 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:41:54.5893 Info Found 24 configuration items
+2020-02-14 17:41:54.6018 Info Configuration initialized.
+2020-02-14 17:41:54.6018 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:43:01.9125 Info Message Template Auto Format enabled
+2020-02-14 17:43:01.9546 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:43:01.9752 Info Found 24 configuration items
+2020-02-14 17:43:01.9855 Info Configuration initialized.
+2020-02-14 17:43:01.9855 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:43:09.0853 Info Message Template Auto Format enabled
+2020-02-14 17:43:09.1299 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:43:09.1487 Info Found 24 configuration items
+2020-02-14 17:43:09.1595 Info Configuration initialized.
+2020-02-14 17:43:09.1595 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:44:59.3306 Info Message Template Auto Format enabled
+2020-02-14 17:44:59.3890 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:44:59.4180 Info Found 24 configuration items
+2020-02-14 17:44:59.4344 Info Configuration initialized.
+2020-02-14 17:44:59.4344 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:47:40.8205 Info Message Template Auto Format enabled
+2020-02-14 17:47:40.8725 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:47:40.9014 Info Found 24 configuration items
+2020-02-14 17:47:40.9154 Info Configuration initialized.
+2020-02-14 17:47:40.9154 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:47:51.7588 Info Message Template Auto Format enabled
+2020-02-14 17:47:51.8225 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:47:51.8512 Info Found 24 configuration items
+2020-02-14 17:47:51.8642 Info Configuration initialized.
+2020-02-14 17:47:51.8642 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:49:08.1619 Info Message Template Auto Format enabled
+2020-02-14 17:49:08.2229 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:49:08.2426 Info Found 24 configuration items
+2020-02-14 17:49:08.2547 Info Configuration initialized.
+2020-02-14 17:49:08.2547 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:52:48.4907 Info Message Template Auto Format enabled
+2020-02-14 17:52:48.5532 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:52:48.5815 Info Found 24 configuration items
+2020-02-14 17:52:48.5972 Info Configuration initialized.
+2020-02-14 17:52:48.5972 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:53:24.3901 Info Message Template Auto Format enabled
+2020-02-14 17:53:24.4337 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:53:24.4541 Info Found 24 configuration items
+2020-02-14 17:53:24.4722 Info Configuration initialized.
+2020-02-14 17:53:24.4722 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:54:41.1616 Info Message Template Auto Format enabled
+2020-02-14 17:54:41.2021 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:54:41.2221 Info Found 24 configuration items
+2020-02-14 17:54:41.2221 Info Configuration initialized.
+2020-02-14 17:54:41.2221 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:54:45.9056 Info Message Template Auto Format enabled
+2020-02-14 17:54:45.9540 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:54:45.9715 Info Found 24 configuration items
+2020-02-14 17:54:45.9715 Info Configuration initialized.
+2020-02-14 17:54:45.9715 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:55:12.8337 Info Message Template Auto Format enabled
+2020-02-14 17:55:12.8815 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:55:12.9021 Info Found 24 configuration items
+2020-02-14 17:55:12.9143 Info Configuration initialized.
+2020-02-14 17:55:12.9143 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:56:26.5730 Info Message Template Auto Format enabled
+2020-02-14 17:56:26.6259 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:56:26.6543 Info Found 24 configuration items
+2020-02-14 17:56:26.6655 Info Configuration initialized.
+2020-02-14 17:56:26.6655 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 17:59:23.0666 Info Message Template Auto Format enabled
+2020-02-14 17:59:23.1283 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 17:59:23.1554 Info Found 24 configuration items
+2020-02-14 17:59:23.1697 Info Configuration initialized.
+2020-02-14 17:59:23.1697 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 18:01:33.2806 Info Message Template Auto Format enabled
+2020-02-14 18:01:33.3323 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 18:01:33.3540 Info Found 24 configuration items
+2020-02-14 18:01:33.3676 Info Configuration initialized.
+2020-02-14 18:01:33.3676 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.
+2020-02-14 18:02:14.5432 Info Message Template Auto Format enabled
+2020-02-14 18:02:14.6078 Info Adding target AsyncTargetWrapper(Name=file)
+2020-02-14 18:02:14.6264 Info Found 24 configuration items
+2020-02-14 18:02:14.6264 Info Configuration initialized.
+2020-02-14 18:02:14.6264 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.6.8.10751. Product version: 4.6.8.

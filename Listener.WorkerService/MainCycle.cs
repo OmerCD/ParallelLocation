@@ -20,7 +20,7 @@ namespace Listener.WorkerService
     {
         private readonly ILogger<MainCycle> _logger;
         private readonly AppSettings _appSettings;
-        private readonly IListener _listener;
+        private readonly List<IPortListener> _portListener;
         private bool _isListening;
         private readonly IQueueOperation<BasicDeliverEventArgs> _queueOperation;
 
@@ -34,42 +34,54 @@ namespace Listener.WorkerService
             _logger = logger;
             _appSettings = appSettings;
             _queueOperation = queueOperation;
-            _listener = new SocketListener.Listener(_appSettings.ConnectionInfo.IsOnline);
             _clients = new ConcurrentDictionary<int, IClient>();
-            _exchangeName = _appSettings.ConnectionInfo.ToString();
+            _exchangeName ="Receiving";
+
+            _queueOperation.CreateConnection();
+            _portListener = new List<IPortListener>();
+            foreach (var item in _appSettings.ListeningPorts)
+            {
+                var tcpPortListener = new TcpPortListener(item.StartBytes, item.EndBytes, item.Name, item.Port,
+                    _appSettings.ConnectionInfo.IpAddress);
+
+                tcpPortListener.PackageCompleted = ReceiveData;
+                
+                _portListener.Add(tcpPortListener);
+
+                _queueOperation.DeclareQueueExchange(_exchangeName, item.Name, item.Name + "Route");
+            }
         }
 
         private void StartListening()
         {
             _clients.Clear();
-            if (_isListening)
+
+            foreach (var item in _portListener)
             {
-                _listener.StopListener();
+                if (_isListening)
+                {
+                    item.StopListening();
 
-                _listener.ClientConnected -= ClientConnected;
-                _listener.ClientDisconnected -= ClientDisconnected;
+                    item.ClientConnected -= ClientConnected;
+                    item.ClientDisconnected -= ClientDisconnected;
 
-                _isListening = false;
+                    _isListening = false;
 
-                _queueOperation.Dispose();
+                    _queueOperation.Dispose();
 
-                _logger.LogInformation("Stop Socket Listening");
-            }
-            else
-            {
-                _listener.ClientConnected += ClientConnected;
-                _listener.ClientDisconnected += ClientDisconnected;
+                    _logger.LogInformation("Stop Socket Listening");
+                }
+                else
+                {
+                    item.ClientConnected += ClientConnected;
+                    item.ClientDisconnected += ClientDisconnected;
 
-                _listener.StartReceive(
-                    new BindInformation(_appSettings.ConnectionInfo.Port, _appSettings.ConnectionInfo.IpAddress),
-                    ReceiveData);
+                    item.StartListening();
 
-                _isListening = true;
+                    _isListening = true;
 
-                _logger.LogInformation("Start Socket Listening");
-
-                _queueOperation.CreateConnection();
-                _queueOperation.DeclareQueueExchange(_exchangeName, _exchangeName);
+                    _logger.LogInformation("Start Socket Listening");
+                }
             }
         }
 
@@ -82,7 +94,7 @@ namespace Listener.WorkerService
         {
         }
 
-        private void ReceiveData(byte[] received)
+        private void ReceiveData(IPortListener portListener, byte[] received)
         {
             var date = DateTime.Now;
             Console.WriteLine($"{date} - {string.Join(",", received)}");
@@ -95,7 +107,7 @@ namespace Listener.WorkerService
                 IsOnline = _appSettings.ConnectionInfo.IsOnline
             };
 
-            _queueOperation.SendMessageToQueue(packetFromQueue, _exchangeName );
+            _queueOperation.SendMessageToQueue(packetFromQueue, _exchangeName, portListener.Name + "Route");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

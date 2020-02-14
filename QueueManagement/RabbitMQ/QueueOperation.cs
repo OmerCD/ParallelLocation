@@ -15,12 +15,9 @@ namespace QueueManagement.RabbitMQ
         private ConnectionFactory _connectionFactory;
         private readonly QueueCredential _queueCredential;
         
-        private readonly ILogger<QueueOperation> _logger;
-
         public QueueOperation(QueueCredential queueCredential, ILogger<QueueOperation> logger = null)
         {
             _queueCredential = queueCredential;
-            _logger = logger;
         }
 
         public void CreateConnection()
@@ -56,8 +53,13 @@ namespace QueueManagement.RabbitMQ
         public void DeclareQueueExchange(string exchangeName, string queueName, string routingKey = "")
         {
             _model?.ExchangeDeclare(exchangeName, ExchangeType.Direct, true, false);
-            _model?.QueueDeclare(exchangeName, true, false, false, null);
+            _model?.QueueDeclare(queueName, true, false, false, null);
             _model?.QueueBind(queueName, exchangeName, routingKey);
+        }
+
+        public void DeclareQueue(string queueName)
+        {
+            _model?.QueueDeclare(queueName, true, false, false, null);
         }
 
         public event EventHandler<BasicDeliverEventArgs> ConsumerReceived;
@@ -75,7 +77,7 @@ namespace QueueManagement.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "MessagQueueOperationeSender.SendMessageToQueue Values : " + JsonConvert.SerializeObject(message));
+                // _logger.LogError(ex, "MessagQueueOperationeSender.SendMessageToQueue Values : " + JsonConvert.SerializeObject(message));
             }
         }
 
