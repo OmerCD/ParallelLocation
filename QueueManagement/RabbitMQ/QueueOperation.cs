@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Parallel.Shared.Credentials;
+using Parallel.Shared.Helper;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -12,19 +15,21 @@ namespace QueueManagement.RabbitMQ
     {
         private IConnection _connection;
         private IModel _model;
+        private EventingBasicConsumer _consumer;
         private ConnectionFactory _connectionFactory;
         private readonly QueueCredential _queueCredential;
-        
+
         public QueueOperation(QueueCredential queueCredential, ILogger<QueueOperation> logger = null)
         {
             _queueCredential = queueCredential;
+            
         }
 
         public void CreateConnection()
         {
             _connectionFactory ??= new ConnectionFactory
             {
-                HostName = _queueCredential.HostName, 
+                HostName = _queueCredential.HostName,
                 UserName = _queueCredential.UserName,
                 Password = _queueCredential.Password
             };
@@ -32,6 +37,14 @@ namespace QueueManagement.RabbitMQ
             _connectionFactory.AutomaticRecoveryEnabled = true;
             _connection = _connectionFactory.CreateConnection();
             _model = _connection.CreateModel();
+            
+            _consumer = new EventingBasicConsumer(_model);
+            _consumer.Received += ConsumerOnReceived;
+        }
+
+        private void ConsumerOnReceived(object? sender, BasicDeliverEventArgs e)
+        {
+            ConsumerReceived?.Invoke(sender, e);
         }
 
         public void DisposeConnection()
@@ -63,7 +76,28 @@ namespace QueueManagement.RabbitMQ
             _model?.QueueDeclare(queueName, true, false, false, null);
         }
 
-        public event EventHandler<BasicDeliverEventArgs> ConsumerReceived;
+        public EventHandler<BasicDeliverEventArgs> ConsumerReceived { get; set; }
+
+        public IEnumerable<QueueBindingModel> GetQueueList(string exchangeName)
+        {
+            try
+            {
+                HttpClient httpClient = new HttpClient();
+                string requestUrl =
+                    $"http://{_queueCredential.HostName}:{_queueCredential.Port}/api/exchanges/%2F/{exchangeName}/bindings/source";
+
+                var token = Utility.GetBasicAuthToken(_queueCredential.UserName, _queueCredential.Password);
+
+                httpClient.DefaultRequestHeaders.Add("Authorization", token);
+
+                var response = httpClient.GetAsync(requestUrl).Result.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<QueueBindingModel[]>(response.Result);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
 
         public void SendMessageToQueue(object message, string exchangeName, string routingKey = "")
         {
@@ -78,17 +112,12 @@ namespace QueueManagement.RabbitMQ
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "MessagQueueOperationeSender.SendMessageToQueue Values : " + JsonConvert.SerializeObject(message));
             }
         }
 
         public void StartReceiving(string queueName)
         {
-            if (_model == null) return;
-            var consumer = new EventingBasicConsumer(_model);
-            consumer.Received += ConsumerReceived;
-
-            string message = _model.BasicConsume(queueName, true, consumer);
+            string message = _model.BasicConsume(queueName, true, _consumer);
         }
 
         public void Dispose()

@@ -29,6 +29,7 @@ namespace Listener.WorkerService
             StartReceive(
                 new BindInformation(_port, _ipAddress),
                 PackageCompleted);
+            IsListening = true;
         }
 
         public void StopListening()
@@ -42,6 +43,7 @@ namespace Listener.WorkerService
                 }
             }
 
+            IsListening = false;
             _listener.Stop();
             Clients.Clear();
         }
@@ -73,6 +75,8 @@ namespace Listener.WorkerService
                 return Clients.Values;
             }
         }
+
+        public bool IsListening { get; set; }
 
         private void RemoveDisconnectedClients()
         {

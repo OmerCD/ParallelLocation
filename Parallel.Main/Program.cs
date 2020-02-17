@@ -37,8 +37,8 @@ namespace Parallel.Main
           var builder =  CreateWebHostBuilder(args, (b) => BuilderAction(b));
 
           var host = builder.Build();
-          var mainCycle = host.Services.GetService<MainCycle>();
-          Task.Run(mainCycle.StartListening);
+          var dynamicQueueListener = host.Services.GetService<DynamicQueueListener>();
+          Task.Run(dynamicQueueListener.StartListeningQueues);
           host.Run();
             // CreateHostBuilder(args, (b) => BuilderAction(b)).Build().RunAsync();
              Console.ReadKey();
@@ -73,7 +73,7 @@ namespace Parallel.Main
                 {
                     x.AddMvc(options => options.EnableEndpointRouting = false);
                     x.AddSignalR();
-                    x.AddSingleton<MainCycle>();
+                    x.AddSingleton<DynamicQueueListener>();
                     x.AddSingleton(config);
                 })
                 .UseStartup<Startup>();

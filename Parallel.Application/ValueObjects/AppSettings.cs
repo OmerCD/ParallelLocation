@@ -25,13 +25,6 @@
     public class ConnectionInfo
     {
         public string IpAddress { get; set; }
-        public int Port { get; set; }
-        public bool IsOnline { get; set; }
-
-        public override string ToString()
-        {
-            return IsOnline ? "OnlineMessages" : "OfflineMessages";
-        }
     }
 
     public class ApiConnectionInfo
@@ -45,6 +38,7 @@
         public string HostName { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
+        public int Port { get; set; }
     }
 
     public class ListeningPort

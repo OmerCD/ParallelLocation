@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using MessageObjectRouter;
+﻿using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,8 +8,11 @@ using NLog.Extensions.Logging;
 using Parallel.Application.Hubs;
 using Parallel.Application.Services;
 using Parallel.Application.ValueObjects;
-using Parallel.Location;
 using Parallel.Main.Extensions;
+using Parallel.Shared.Credentials;
+using QueueManagement;
+using QueueManagement.RabbitMQ;
+using RabbitMQ.Client.Events;
 using ReflectorO;
 
 namespace Parallel.Main
@@ -38,11 +38,18 @@ namespace Parallel.Main
                 builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddNLog(_configuration);
             });
+            
+            // RabbitMQ injection
+            services.AddSingleton<IQueueOperation<BasicDeliverEventArgs>>(
+                new QueueOperation(new QueueCredential(appSettings.QueueConnectInfo.HostName,
+                    appSettings.QueueConnectInfo.UserName, appSettings.QueueConnectInfo.Password, appSettings.QueueConnectInfo.Port)));
+            
             services.AddSingleton<IDatabaseContext>(new MongoContext(appSettings.DatabaseInfo.MongoDatabase.ConnectionString, appSettings.DatabaseInfo.MongoDatabase.DatabaseName));
             services.AddSingleton<IElector, Elector>();
             services.AddElectorParser();
             services.AddLocationCalculatorRouter();
             services.AddProcessManager();
+            services.AddSingleton<DynamicQueueListener>();
         }
 
         public void Configure(IApplicationBuilder app)

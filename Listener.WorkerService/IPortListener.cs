@@ -23,5 +23,7 @@ namespace Listener.WorkerService
 
         int ClientCount { get; }
         IEnumerable<IClient> ConnectedClients { get; }
+
+        bool IsListening { get; set; }
     }
 }

@@ -14,12 +14,14 @@ using SocketListener;
 
 namespace Parallel.Main
 {
+    [Obsolete]
     public partial class MainCycle : BackgroundService
     {
         private readonly ILogger<MainCycle> _logger;
         private readonly IParseRouter<byte[]> _parseRouter;
         private readonly AppSettings _appSettings;
         private readonly IProcessManager _processManager;
+        private readonly DynamicQueueListener _dynamicQueueListener;
         private readonly IListener _listener;
         private bool _isListening;
         private bool _isGuiActive;
@@ -28,13 +30,14 @@ namespace Parallel.Main
         private int _clientIndexTracker = 0;
 
         public MainCycle(ILogger<MainCycle> logger,
-            IParseRouter<byte[]> parseRouter, AppSettings appSettings, IProcessManager processManager)
+            IParseRouter<byte[]> parseRouter, AppSettings appSettings, IProcessManager processManager, DynamicQueueListener dynamicQueueListener)
         {
             _logger = logger;
             _parseRouter = parseRouter;
             _appSettings = appSettings;
             _processManager = processManager;
-            _listener = new Listener(new byte[] {240, 240, 240, 240, 240}, new byte[] {241, 241, 241, 241, 241});
+            _dynamicQueueListener = dynamicQueueListener;
+            _listener = new SocketListener.Listener(new byte[] {240, 240, 240, 240, 240}, new byte[] {241, 241, 241, 241, 241});
             _clients = new ConcurrentDictionary<int, IClient>();
         }
 
@@ -75,7 +78,7 @@ namespace Parallel.Main
                     _menuItemStartListening.Title = "_Stop Listening";
                 }
                 _listener.StartReceive(
-                    new BindInformation(_appSettings.ConnectionInfo.Port, _appSettings.ConnectionInfo.IpAddress),
+                    new BindInformation(_appSettings.ListeningPorts[0].Port, _appSettings.ConnectionInfo.IpAddress),
                     ReceiveData);
    
                 _isListening = true;

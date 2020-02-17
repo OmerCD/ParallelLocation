@@ -21,7 +21,6 @@ namespace Listener.WorkerService
         private readonly ILogger<MainCycle> _logger;
         private readonly AppSettings _appSettings;
         private readonly IEnumerable<IPortListener> _portListeners;
-        private bool _isListening;
         private readonly IQueueOperation<BasicDeliverEventArgs> _queueOperation;
 
         private readonly IDictionary<int, IClient> _clients;
@@ -38,18 +37,10 @@ namespace Listener.WorkerService
             _clients = new ConcurrentDictionary<int, IClient>();
 
             _queueOperation.CreateConnection();
-            // _portListener = new List<IPortListener>();
-            // foreach (ListeningPort item in _appSettings.ListeningPorts)
-            // {
-            //     var tcpPortListener = new TcpPortListener(item.StartBytes, item.EndBytes, item.Name, item.Port,
-            //         _appSettings.ConnectionInfo.IpAddress);
-            //
-            //     tcpPortListener.PackageCompleted = ReceiveData;
-            //     
-            //     _portListener.Add(tcpPortListener);
-            //
-            //     _queueOperation.DeclareQueueExchange(ExchangeName, item.Name, item.Name + "Route");
-            // }
+            foreach (var item in _portListeners)
+            {
+                _queueOperation.DeclareQueueExchange(ExchangeName, item.Name, item.Name + "Route");
+            }
         }
 
         private void StartListening()
@@ -58,14 +49,12 @@ namespace Listener.WorkerService
 
             foreach (IPortListener item in _portListeners)
             {
-                if (_isListening)
+                if (item.IsListening)
                 {
                     item.StopListening();
 
                     item.ClientConnected -= ClientConnected;
                     item.ClientDisconnected -= ClientDisconnected;
-
-                    _isListening = false;
 
                     _queueOperation.Dispose();
 
@@ -76,9 +65,9 @@ namespace Listener.WorkerService
                     item.ClientConnected += ClientConnected;
                     item.ClientDisconnected += ClientDisconnected;
 
-                    item.StartListening();
+                    item.PackageCompleted = ReceiveData;
 
-                    _isListening = true;
+                    item.StartListening();
 
                     _logger.LogInformation("Start Socket Listening");
                 }
@@ -92,7 +81,6 @@ namespace Listener.WorkerService
 
         private void ClientConnected(IClient client)
         {
-            
         }
 
         private void ReceiveData(IPortListener portListener, byte[] received)

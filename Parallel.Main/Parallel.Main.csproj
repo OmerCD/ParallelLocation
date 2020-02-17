@@ -7,48 +7,49 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.0.0"/>
-        <PackageReference Include="NLog" Version="4.6.8"/>
-        <PackageReference Include="NLog.Extensions.Logging" Version="1.6.1"/>
-        <PackageReference Include="ObjectDumper.NET" Version="2.4.19218.1"/>
-        <PackageReference Include="Terminal.Gui" Version="0.24.0"/>
+        <PackageReference Include="EasyNetQ" Version="3.8.0-alpha0041" />
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.1" />
+        <PackageReference Include="NLog" Version="4.6.8" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="1.6.1" />
+        <PackageReference Include="ObjectDumper.NET" Version="2.4.19218.1" />
+        <PackageReference Include="Terminal.Gui" Version="0.24.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MessageObjectRouter\MessageObjectRouter.csproj"/>
-        <ProjectReference Include="..\Parallel.Application\Parallel.Application.csproj"/>
-        <ProjectReference Include="..\Parallel.Location\Parallel.Location.csproj"/>
-        <ProjectReference Include="..\Parallel.Repository\Parallel.Repository.csproj"/>
-        <ProjectReference Include="..\Parallel.Shared\Parallel.Shared.csproj"/>
-        <ProjectReference Include="..\ReflectorO\ReflectorO.csproj"/>
-        <ProjectReference Include="..\SocketCommunication\SocketCommunication.csproj"/>
-        <ProjectReference Include="..\SocketListener\SocketListener.csproj"/>
+        <ProjectReference Include="..\Listener.WorkerService\Listener.WorkerService.csproj" />
+        <ProjectReference Include="..\MessageObjectRouter\MessageObjectRouter.csproj" />
+        <ProjectReference Include="..\Parallel.Application\Parallel.Application.csproj" />
+        <ProjectReference Include="..\Parallel.Location\Parallel.Location.csproj" />
+        <ProjectReference Include="..\Parallel.Repository\Parallel.Repository.csproj" />
+        <ProjectReference Include="..\Parallel.Shared\Parallel.Shared.csproj" />
+        <ProjectReference Include="..\QueueManagement\QueueManagement.csproj" />
+        <ProjectReference Include="..\ReflectorO\ReflectorO.csproj" />
+        <ProjectReference Include="..\SocketListener\SocketListener.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
     <ItemGroup>
         <None Update="appsettings.Development.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Remove="Terminal\**"/>
+        <None Remove="Terminal\**" />
         <None Update="nlog.config">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Terminal\**"/>
+        <Compile Remove="Terminal\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Remove="Terminal\**"/>
+        <EmbeddedResource Remove="Terminal\**" />
     </ItemGroup>
 
 </Project>

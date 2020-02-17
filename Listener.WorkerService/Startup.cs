@@ -25,7 +25,9 @@ namespace Listener.WorkerService
 
             
             services.AddSingleton(appSettings);
-            // services.AddSingleton<>()
+            services.AddSingleton(
+                new ListenerAdapter().GetTcpPortListeners(appSettings.ListeningPorts,
+                    appSettings.ConnectionInfo.IpAddress));
 
             services.AddLogging(builder =>
             {
