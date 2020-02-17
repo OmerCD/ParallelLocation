@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -12,22 +14,22 @@ namespace SocketListener
 {
     public class Listener : IListener
     {
+        private readonly PackageLimiter[] _packageLimiters;
         private readonly byte[] _startValues;
         private readonly byte[] _endValues;
-
         private static readonly ConcurrentDictionary<Guid, IClient> Clients = new ConcurrentDictionary<Guid, IClient>();
         private TcpListenerEx _listener;
-
-        public Listener(bool isOnline)
-        {
-            _startValues = isOnline ? new byte[] {240, 240, 240, 240, 240} : new byte[] {250, 250, 250, 250, 250};
-            _endValues = isOnline ? new byte[] {241, 241, 241, 241, 241} : new byte[] {251, 251, 251, 251, 251};
-        }
 
         public Listener(byte[] startValues, byte[] endValues)
         {
             _startValues = startValues;
             _endValues = endValues;
+        }
+
+        
+        public Listener(IEnumerable<PackageLimiter> packageLimiters)
+        {
+            _packageLimiters = packageLimiters as PackageLimiter[] ?? packageLimiters.ToArray();
         }
 
         public int ClientCount
@@ -54,7 +56,7 @@ namespace SocketListener
 
             foreach (Guid guid in idList)
             {
-                if (Clients.TryRemove(guid, out var client))
+                if (Clients.TryRemove(guid, out IClient client))
                 {
                     ClientDisconnected?.Invoke(client);
                 }
@@ -84,13 +86,15 @@ namespace SocketListener
 
         public void StopListener()
         {
-            foreach (var client in Clients)
+            foreach ((Guid _, IClient client) in Clients)
             {
-                if (client.Value.Socket.Connected)
+                if (!client.Socket.Connected)
                 {
-                    client.Value.Socket.Shutdown(SocketShutdown.Both);
-                    client.Value.Socket.Close();
+                    continue;
                 }
+
+                client.Socket.Shutdown(SocketShutdown.Both);
+                client.Socket.Close();
             }
 
             _listener.Stop();
@@ -99,7 +103,7 @@ namespace SocketListener
 
         private void OnAccept(IAsyncResult ar)
         {
-            var ( tcpListener, messageReceived) = (Tuple<TcpListenerEx, Action<byte[]>>) ar.AsyncState;
+            (TcpListenerEx tcpListener, Action<byte[]> messageReceived) = (Tuple<TcpListenerEx, Action<byte[]>>) ar.AsyncState;
             try
             {
                 if (tcpListener.Active)
@@ -119,6 +123,7 @@ namespace SocketListener
             stateInfo.ClientId = Guid.NewGuid();
             stateInfo.Buffer = new byte[8192];
             stateInfo.MessageReceived = messageReceived;
+            
             var client = new Client(stateInfo.Socket, stateInfo.ClientId);
             if (Clients.TryAdd(stateInfo.ClientId, client))
             {
@@ -213,6 +218,82 @@ namespace SocketListener
             Clients[clientId].Socket.Send(responsePackage, 0, index, SocketFlags.None);
         }
 
+        private async IAsyncEnumerable<PackageInfo> GetPackages(byte[] received, PackageLimiter packageLimiter = null)
+        {
+            var lastIndex = 0;
+
+            while (lastIndex < received.Length)
+            {
+                int first = -1;
+                var last = 0;
+
+                try
+                {
+                    if (packageLimiter == null)
+                    {
+                        IEnumerator limiterEnumerator = _packageLimiters.GetEnumerator();
+                        PackageLimiter currentLimiter;
+                        while (limiterEnumerator.MoveNext())
+                        {
+                            currentLimiter = limiterEnumerator.Current as PackageLimiter;
+                            if (currentLimiter == null)
+                            {
+                                throw new NoNullAllowedException("Limiter is null");
+                            }
+                            int tempValLast = lastIndex;
+                            PackageLimiter limiter = currentLimiter;
+                            first = await Task.Run(() => received.IndexOf(limiter.StartBytes, tempValLast)).ConfigureAwait(false);
+                        }
+                    }
+                    int tempValFirst = first;
+                    last = await Task.Run(() => received.IndexOf(_endValues, tempValFirst)).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+
+                if (lastIndex > 0 && first == -1)
+                {
+                    yield return new PackageInfo(received[lastIndex..], false);
+                    yield break;
+                }
+
+                if (last == -1)
+                {
+                    if (first < 0 || first >= received.Length)
+                    {
+                        yield return new PackageInfo(received, false);
+                    }
+                    else
+                    {
+                        yield return new PackageInfo(received[first..], false);
+                    }
+
+                    yield break;
+                }
+
+                first += _startValues.Length;
+                if (first > last)
+                {
+                    break;
+                }
+
+                PackageInfo packageInfo = default;
+                try
+                {
+                    packageInfo = new PackageInfo(received[first..last], true);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
+                yield return packageInfo;
+                lastIndex = last + _endValues.Length;
+            }
+        }
         private async IAsyncEnumerable<PackageInfo> GetPackages(byte[] received)
         {
             var lastIndex = 0;

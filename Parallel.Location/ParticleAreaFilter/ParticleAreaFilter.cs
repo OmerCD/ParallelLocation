@@ -93,6 +93,8 @@ namespace Parallel.Location.ParticleAreaFilter
 
         public IEnumerable<IAnchor> CurrentAnchors => _anchors.Values;
 
+        public IAnchor this[int anchorId] => _anchors[anchorId];
+
         public ICoordinate GetResult(int id, params IDistance[] distances)
         {
             if (CheckIfAnchorsColliding(distances))

@@ -32,6 +32,8 @@ namespace Fingerprinting
 
         public IEnumerable<IAnchor> CurrentAnchors => _anchors.Values;
 
+        public IAnchor this[int anchorId] => _anchors[anchorId];
+
         public ICoordinate GetResult(int id, params IDistance[] distances)
         {
             var bestThree = distances.OrderBy(x => x.Distance).Take(3).ToArray();

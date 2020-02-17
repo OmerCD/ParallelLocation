@@ -24,7 +24,8 @@ namespace QueueManagement.RabbitMQ
         {
             _connectionFactory ??= new ConnectionFactory
             {
-                HostName = _queueCredential.HostName, UserName = _queueCredential.UserName,
+                HostName = _queueCredential.HostName, 
+                UserName = _queueCredential.UserName,
                 Password = _queueCredential.Password
             };
 
@@ -69,10 +70,10 @@ namespace QueueManagement.RabbitMQ
             try
             {
                 if (_model == null) return;
-                var basicProperties = _model.CreateBasicProperties();
+                IBasicProperties basicProperties = _model.CreateBasicProperties();
                 basicProperties.Persistent = true;
 
-                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
                 _model.BasicPublish(exchangeName, routingKey, basicProperties, body);
             }
             catch (Exception ex)
@@ -87,7 +88,7 @@ namespace QueueManagement.RabbitMQ
             var consumer = new EventingBasicConsumer(_model);
             consumer.Received += ConsumerReceived;
 
-            var message = _model.BasicConsume(queueName, true, consumer);
+            string message = _model.BasicConsume(queueName, true, consumer);
         }
 
         public void Dispose()

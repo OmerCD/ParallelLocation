@@ -48,7 +48,7 @@ namespace Parallel.Application.Services.MessageProcessors
         {
             if (messages.Length > 1)
             {
-                var calculator = _locationCalculatorRouter.GetCalculator(typeof(MessageType4));
+                ILocationCalculator calculator = _locationCalculatorRouter.GetCalculator(typeof(MessageType4));
                 if (calculator.MinAnchorCount <= messages.Length)
                 {
                     var distances = new DistanceBase[messages.Length];
@@ -82,10 +82,9 @@ namespace Parallel.Application.Services.MessageProcessors
                     // _locationRepository.Add(locationEntity);
                     // _databaseContext.SaveChanges();
                     var anchors = new List<AnchorInfo>();
-                    var currentAnchors = calculator.CurrentAnchors;
                     foreach (var distance in distances)
                     {
-                        var currentAnchor = currentAnchors.FirstOrDefault(x => x.Id == distance.FromAnchorId);
+                        var currentAnchor = calculator[distance.FromAnchorId];
                         anchors.Add(new AnchorInfo
                         {
                             Radius = distance.Distance,

@@ -20,43 +20,43 @@ namespace Listener.WorkerService
     {
         private readonly ILogger<MainCycle> _logger;
         private readonly AppSettings _appSettings;
-        private readonly List<IPortListener> _portListener;
+        private readonly IEnumerable<IPortListener> _portListeners;
         private bool _isListening;
         private readonly IQueueOperation<BasicDeliverEventArgs> _queueOperation;
 
         private readonly IDictionary<int, IClient> _clients;
 
-        private readonly string _exchangeName;
+        private const string ExchangeName = "Receiving";
 
         public MainCycle(ILogger<MainCycle> logger, AppSettings appSettings,
-            IQueueOperation<BasicDeliverEventArgs> queueOperation)
+            IQueueOperation<BasicDeliverEventArgs> queueOperation, IEnumerable<IPortListener> portListeners)
         {
             _logger = logger;
             _appSettings = appSettings;
             _queueOperation = queueOperation;
+            _portListeners = portListeners;
             _clients = new ConcurrentDictionary<int, IClient>();
-            _exchangeName ="Receiving";
 
             _queueOperation.CreateConnection();
-            _portListener = new List<IPortListener>();
-            foreach (var item in _appSettings.ListeningPorts)
-            {
-                var tcpPortListener = new TcpPortListener(item.StartBytes, item.EndBytes, item.Name, item.Port,
-                    _appSettings.ConnectionInfo.IpAddress);
-
-                tcpPortListener.PackageCompleted = ReceiveData;
-                
-                _portListener.Add(tcpPortListener);
-
-                _queueOperation.DeclareQueueExchange(_exchangeName, item.Name, item.Name + "Route");
-            }
+            // _portListener = new List<IPortListener>();
+            // foreach (ListeningPort item in _appSettings.ListeningPorts)
+            // {
+            //     var tcpPortListener = new TcpPortListener(item.StartBytes, item.EndBytes, item.Name, item.Port,
+            //         _appSettings.ConnectionInfo.IpAddress);
+            //
+            //     tcpPortListener.PackageCompleted = ReceiveData;
+            //     
+            //     _portListener.Add(tcpPortListener);
+            //
+            //     _queueOperation.DeclareQueueExchange(ExchangeName, item.Name, item.Name + "Route");
+            // }
         }
 
         private void StartListening()
         {
             _clients.Clear();
 
-            foreach (var item in _portListener)
+            foreach (IPortListener item in _portListeners)
             {
                 if (_isListening)
                 {
@@ -92,22 +92,22 @@ namespace Listener.WorkerService
 
         private void ClientConnected(IClient client)
         {
+            
         }
 
         private void ReceiveData(IPortListener portListener, byte[] received)
         {
-            var date = DateTime.Now;
-            Console.WriteLine($"{date} - {string.Join(",", received)}");
+            DateTime dateNow = DateTime.Now;
+            Console.WriteLine($"{dateNow} - {string.Join(",", received)}");
 
-            PacketFromQueue packetFromQueue = new PacketFromQueue
+            var packetFromQueue = new PacketFromQueue
             {
                 Buffer = received,
-                ReceiveDate = date,
-                QueueDate = date,
-                IsOnline = _appSettings.ConnectionInfo.IsOnline
+                ReceiveDate = dateNow,
+                QueueDate = dateNow,
             };
 
-            _queueOperation.SendMessageToQueue(packetFromQueue, _exchangeName, portListener.Name + "Route");
+            _queueOperation.SendMessageToQueue(packetFromQueue, ExchangeName, portListener.Name + "Route");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

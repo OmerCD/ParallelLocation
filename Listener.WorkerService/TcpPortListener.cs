@@ -14,10 +14,12 @@ namespace Listener.WorkerService
 {
     public class TcpPortListener : IPortListener
     {
+        private TcpListenerEx _listener;
         private readonly byte[] _startValues;
         private readonly byte[] _endValues;
         private readonly int _port;
         private readonly string _ipAddress;
+        private static readonly ConcurrentDictionary<Guid, IClient> Clients = new ConcurrentDictionary<Guid, IClient>();
 
         public Action<IPortListener, byte[]> PackageCompleted { get; set; }
         public string Name { get; }
@@ -31,12 +33,12 @@ namespace Listener.WorkerService
 
         public void StopListening()
         {
-            foreach (var client in Clients)
+            foreach ((Guid _, IClient client) in Clients)
             {
-                if (client.Value.Socket.Connected)
+                if (client.Socket.Connected)
                 {
-                    client.Value.Socket.Shutdown(SocketShutdown.Both);
-                    client.Value.Socket.Close();
+                    client.Socket.Shutdown(SocketShutdown.Both);
+                    client.Socket.Close();
                 }
             }
 
@@ -44,8 +46,6 @@ namespace Listener.WorkerService
             Clients.Clear();
         }
 
-        private static readonly ConcurrentDictionary<Guid, IClient> Clients = new ConcurrentDictionary<Guid, IClient>();
-        private TcpListenerEx _listener;
 
         public TcpPortListener(byte[] startValues, byte[] endValues, string name, int port, string ipAddress)
         {

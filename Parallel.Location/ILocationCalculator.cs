@@ -9,6 +9,7 @@ namespace Parallel.Location
         void SetAnchors(IAnchor[] values);
         void SetAnchor(int anchorId, IAnchor value);
         IEnumerable<IAnchor> CurrentAnchors { get; }
+        IAnchor this[int anchorId] { get; }
         ICoordinate GetResult(int id, params IDistance[] distances);
     }
 }

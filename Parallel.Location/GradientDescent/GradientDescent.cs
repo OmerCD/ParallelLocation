@@ -33,6 +33,8 @@ namespace Parallel.Location
 
         public IEnumerable<IAnchor> CurrentAnchors => _anchorsDic.Values;
 
+        public IAnchor this[int anchorId] => _anchorsDic[anchorId];
+
         public ICoordinate GetResult(int objectId, params IDistance[] distances)
         {
             (Vector<double> ranges, double[,] anchors) = CreateRangeArray(distances);

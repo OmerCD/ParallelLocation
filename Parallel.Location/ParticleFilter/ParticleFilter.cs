@@ -156,6 +156,8 @@ namespace Parallel.Location.ParticleFilter
 
         public IEnumerable<IAnchor> CurrentAnchors => _anchors.Values;
 
+        public IAnchor this[int anchorId] => _anchors[anchorId];
+
         public ICoordinate GetResult(int objectId, params IDistance[] distances)
         {
             double minH = double.MaxValue;

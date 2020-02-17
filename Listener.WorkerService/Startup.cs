@@ -25,6 +25,7 @@ namespace Listener.WorkerService
 
             
             services.AddSingleton(appSettings);
+            // services.AddSingleton<>()
 
             services.AddLogging(builder =>
             {

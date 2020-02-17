@@ -21,7 +21,7 @@ namespace Listener.WorkerService
         void StartListening();
         void StopListening();
 
-        public int ClientCount { get; }
-        public IEnumerable<IClient> ConnectedClients { get; }
+        int ClientCount { get; }
+        IEnumerable<IClient> ConnectedClients { get; }
     }
 }
