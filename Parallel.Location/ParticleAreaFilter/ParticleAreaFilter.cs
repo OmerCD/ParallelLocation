@@ -147,7 +147,7 @@ namespace Parallel.Location.ParticleAreaFilter
             else
             {
                 particles = new List<PJayParticle>(_numberOfParticles);
-                for (int i = 0; i < _numberOfParticles; i++)
+                for (int i = 0; i < _numberOfParticles; i++)// todo : Create Semiphore ~20 Threads
                 {
                     double x = ParticleFilter.ParticleFilter.Random.Next((int) minW,
                         (int) maxW);

@@ -7,10 +7,16 @@
         public string SignalRHub { get; set; }
         public DatabaseInfo DatabaseInfo { get; set; }
         public QueueConnectInfo QueueConnectInfo { get; set; }
-
+        public CumulocityInfo CumulocityInfo { get; set; }
         public ListeningPort[] ListeningPorts { get; set; }
     }
 
+    public class CumulocityInfo
+    {
+        public string ServerUrl { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+    }
     public class DatabaseInfo
     {
         public MongoDatabase MongoDatabase { get; set; }
@@ -38,7 +44,8 @@
         public string HostName { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-        public int Port { get; set; }
+        public int AMQPPort { get; set; }
+        public int APIPort { get; set; }
     }
 
     public class ListeningPort

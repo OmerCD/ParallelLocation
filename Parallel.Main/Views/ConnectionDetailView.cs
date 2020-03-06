@@ -1,8 +1,10 @@
-﻿using SocketListener;
+﻿using System;
+using SocketListener;
 using Terminal.Gui;
 
 namespace Parallel.Main.Views
 {
+    [Obsolete]
     public partial class ConnectionDetailView
     {
         public ConnectionDetailView() : base("Connection Detail")

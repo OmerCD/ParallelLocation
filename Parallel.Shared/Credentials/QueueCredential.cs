@@ -8,9 +8,11 @@
 
         public string Password { get; set; }
         public int Port { get; set; }
+        public int APIPort { get; set; }
 
-        public QueueCredential(string hostName = "localhost", string userName = "guest", string password = "guest", int port=15672)
+        public QueueCredential(string hostName = "localhost", string userName = "guest", string password = "guest", int port=5672, int apiPort = 15672)
         {
+            APIPort = apiPort;
             HostName = hostName;
             UserName = userName;
             Password = password;

@@ -16,6 +16,7 @@ using SocketListener;
 
 namespace Listener.WorkerService
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class MainCycle : BackgroundService
     {
         private readonly ILogger<MainCycle> _logger;
@@ -35,11 +36,19 @@ namespace Listener.WorkerService
             _queueOperation = queueOperation;
             _portListeners = portListeners;
             _clients = new ConcurrentDictionary<int, IClient>();
-
-            _queueOperation.CreateConnection();
-            foreach (var item in _portListeners)
+            try
             {
-                _queueOperation.DeclareQueueExchange(ExchangeName, item.Name, item.Name + "Route");
+
+                _queueOperation.CreateConnection();
+                foreach (var item in _portListeners)
+                {
+                    _queueOperation.DeclareQueueExchange(ExchangeName, item.Name, item.Name + "Route");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Couldn't start Listener");
+                throw;
             }
         }
 
@@ -94,7 +103,7 @@ namespace Listener.WorkerService
                 ReceiveDate = dateNow,
                 QueueDate = dateNow,
             };
-
+            //TODO : Detect alarms and send to AlarmQueue
             _queueOperation.SendMessageToQueue(packetFromQueue, ExchangeName, portListener.Name + "Route");
         }
 

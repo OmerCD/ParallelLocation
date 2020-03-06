@@ -8,12 +8,10 @@ namespace Parallel.Main.Controllers
     public class SettingsController : Controller
     {
         private readonly AppSettings _appSettings;
-        private readonly MainCycle _mainCycle;
 
-        public SettingsController(AppSettings appSettings, MainCycle mainCycle)
+        public SettingsController(AppSettings appSettings)
         {
             _appSettings = appSettings;
-            _mainCycle = mainCycle;
         }
 
         [HttpGet("signalr")]

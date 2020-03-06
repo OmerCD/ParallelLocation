@@ -31,7 +31,8 @@ namespace QueueManagement.RabbitMQ
             {
                 HostName = _queueCredential.HostName,
                 UserName = _queueCredential.UserName,
-                Password = _queueCredential.Password
+                Password = _queueCredential.Password,
+                Endpoint = new AmqpTcpEndpoint(_queueCredential.HostName, _queueCredential.Port)
             };
 
             _connectionFactory.AutomaticRecoveryEnabled = true;
@@ -84,7 +85,7 @@ namespace QueueManagement.RabbitMQ
             {
                 HttpClient httpClient = new HttpClient();
                 string requestUrl =
-                    $"http://{_queueCredential.HostName}:{_queueCredential.Port}/api/exchanges/%2F/{exchangeName}/bindings/source";
+                    $"http://{_queueCredential.HostName}:{_queueCredential.APIPort}/api/exchanges/%2F/{exchangeName}/bindings/source";
 
                 var token = Utility.GetBasicAuthToken(_queueCredential.UserName, _queueCredential.Password);
 

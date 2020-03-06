@@ -7,6 +7,7 @@ using Parallel.Repository;
 using NLog.Extensions.Logging;
 using Parallel.Application.Hubs;
 using Parallel.Application.Services;
+using Parallel.Application.Services.CumulocityIOT;
 using Parallel.Application.ValueObjects;
 using Parallel.Main.Extensions;
 using Parallel.Shared.Credentials;
@@ -31,6 +32,7 @@ namespace Parallel.Main
             var appSettings = _configuration.GetSection("AppSettings").Get<AppSettings>();
             services.AddControllers();
             services.AddSingleton(appSettings);
+            services.AddSingleton(appSettings.CumulocityInfo);
             
             services.AddLogging(builder =>
             {
@@ -42,7 +44,7 @@ namespace Parallel.Main
             // RabbitMQ injection
             services.AddSingleton<IQueueOperation<BasicDeliverEventArgs>>(
                 new QueueOperation(new QueueCredential(appSettings.QueueConnectInfo.HostName,
-                    appSettings.QueueConnectInfo.UserName, appSettings.QueueConnectInfo.Password, appSettings.QueueConnectInfo.Port)));
+                    appSettings.QueueConnectInfo.UserName, appSettings.QueueConnectInfo.Password, appSettings.QueueConnectInfo.AMQPPort, appSettings.QueueConnectInfo.APIPort)));
             
             services.AddSingleton<IDatabaseContext>(new MongoContext(appSettings.DatabaseInfo.MongoDatabase.ConnectionString, appSettings.DatabaseInfo.MongoDatabase.DatabaseName));
             services.AddSingleton<IElector, Elector>();
@@ -50,6 +52,7 @@ namespace Parallel.Main
             services.AddLocationCalculatorRouter();
             services.AddProcessManager();
             services.AddSingleton<DynamicQueueListener>();
+            services.AddSingleton<CumulocityIOTService>();
         }
 
         public void Configure(IApplicationBuilder app)

@@ -8,6 +8,7 @@ using Terminal.Gui;
 
 namespace Parallel.Main.Views
 {
+    [Obsolete]
     public partial class ConnectedClientsView
     {
         private readonly IDictionary<Guid, ClientButton> _clientList = new ConcurrentDictionary<Guid, ClientButton>();

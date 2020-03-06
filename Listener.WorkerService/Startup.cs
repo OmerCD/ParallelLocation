@@ -39,7 +39,7 @@ namespace Listener.WorkerService
             // RabbitMQ injection
             services.AddSingleton<IQueueOperation<BasicDeliverEventArgs>>(
                 new QueueOperation(new QueueCredential(appSettings.QueueConnectInfo.HostName,
-                    appSettings.QueueConnectInfo.UserName, appSettings.QueueConnectInfo.Password)));
+                    appSettings.QueueConnectInfo.UserName, appSettings.QueueConnectInfo.Password, appSettings.QueueConnectInfo.AMQPPort, appSettings.QueueConnectInfo.APIPort)));
         }
         
     }

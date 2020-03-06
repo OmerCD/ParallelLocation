@@ -37,8 +37,16 @@ namespace Parallel.Main
             _parseRouter = parseRouter;
             _processManager = processManager;
 
-            _queueOperation.CreateConnection();
-            _queueBindingModels = _queueOperation.GetQueueList("Receiving").OrderByDescending(x=>x.Destination);
+            try
+            {
+                _queueOperation.CreateConnection();
+                _queueBindingModels = _queueOperation.GetQueueList("Receiving");
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e,"Couldn't start DynamicQueueListener");
+                throw;
+            }
         }
 
         public void StartListeningQueues()
