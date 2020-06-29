@@ -16,7 +16,7 @@ namespace Parallel.Location.ParticleFilter
         private readonly int _numberOfParticles;
         private readonly int _numberOfCircleDistances;
         private IDictionary<int, IAnchor> _anchors;
-        private IDictionary<int, ParticleHistory> _particles;
+        private readonly IDictionary<int, ParticleHistory> _particles;
 
         public ParticleFilter(int numberOfParticles,
             int numberOfCircleDistances)
@@ -30,22 +30,6 @@ namespace Parallel.Location.ParticleFilter
         {
         }
 
-        public static double CalculateStdDev(IEnumerable<double> values)
-        {
-            double ret = 0;
-            IEnumerable<double> enumerable = values as double[] ?? values.ToArray();
-            if (enumerable.Any())
-            {
-                //Compute the Average      
-                double avg = enumerable.Average();
-                //Perform the Sum of (value-avg)_2_2      
-                double sum = enumerable.Sum(d => Math.Pow(d - avg, 2));
-                //Put it all together      
-                ret = Math.Sqrt((sum) / (enumerable.Count() - 1));
-            }
-
-            return ret;
-        }
 
         private ICoordinate GenerateCoordinates(IEnumerable<IDistance> distances, IList<PJayParticle> particles,
             out IList<PJayParticle> trainedParticles, bool secondTime)
@@ -54,25 +38,18 @@ namespace Parallel.Location.ParticleFilter
             var maxWeight = 0d;
             distances = distances.OrderBy(x => x.Distance);
             IDistance[] distanceArray = distances.ToArray();
-            var distanceSum = distanceArray.Sum(x => x.Distance);
+            double distanceSum = distanceArray.Sum(x => x.Distance);
 
             foreach (PJayParticle pJay in particles)
             {
-                // if (!secondTime)
-                // {
-                //     pJay.X = Random.Next((int) worldSizeInfo.WorldSizeWidthMin,
-                //         (int) worldSizeInfo.WorldSizeWidthMax);
-                //     pJay.Y = Random.Next((int) worldSizeInfo.WorldSizeHeightMin,
-                //         (int) worldSizeInfo.WorldSizeHeightMax);
-                // }
-
                 double prob = 1;
                 foreach (IDistance distance in distanceArray)
                 {
                     IAnchor anchor = _anchors[distance.FromAnchorId];
-                    double dist = Math.Sqrt(Math.Pow(pJay.X - anchor.X, 2) + Math.Pow(pJay.Y - anchor.Z, 2));
-                    prob *= GaussianProbabilityDistribution(dist, pJay.NumberOfCircleDistances, distance.Distance) *
-                            (1 - (distance.Distance / distanceSum));
+                    double dist = Math.Sqrt(Math.Pow(pJay.X - anchor.X, 2) + Math.Pow(pJay.Z - anchor.Z, 2));
+                    prob *= GaussianProbabilityDistribution(dist, pJay.NumberOfCircleDistances, distance.Distance) 
+                            // *(1 - (distance.Distance / distanceSum))
+                        ;
                 }
 
                 weights.Add(prob);
@@ -86,13 +63,13 @@ namespace Parallel.Location.ParticleFilter
             double beta = (secondTime ? 0.9 : 0.7) * maxWeight;
             var resultPosition = new Coordinate(0, 0, 0);
             var weightTotal = 0d;
-            for (int i = 0; i < _numberOfParticles; i++)
+            for (var i = 0; i < _numberOfParticles; i++)
             {
                 if (beta < weights[i])
                 {
                     newParticles.Add(particles[i]);
                     resultPosition.X += particles[i].X * weights[i];
-                    resultPosition.Z += particles[i].Y * weights[i];
+                    resultPosition.Z += particles[i].Z * weights[i];
                     weightTotal += weights[i];
                 }
             }
@@ -107,8 +84,8 @@ namespace Parallel.Location.ParticleFilter
                 while (_numberOfParticles > newParticles.Count)
                 {
                     i %= currentParticleNumber;
-                    var xx = newParticles[i].X + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
-                    var zz = newParticles[i].Y + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
+                    double xx = newParticles[i].X + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
+                    double zz = newParticles[i].Z + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
 
                     var particle = new PJayParticle(xx, zz);
                     particle.SetNoise(_numberOfCircleDistances);
@@ -129,8 +106,8 @@ namespace Parallel.Location.ParticleFilter
 
         private static double GaussianProbabilityDistribution(double mu, double sigma, double x)
         {
-            var a = Math.Exp(-1 * Math.Pow((mu - x), 2) / Math.Pow(sigma, 2) / 2.0);
-            var b = Math.Sqrt(2.0 * Math.PI * (Math.Pow(sigma, 2)));
+            double a = Math.Exp(-1 * Math.Pow((mu - x), 2) / Math.Pow(sigma, 2) / 2.0);
+            double b = Math.Sqrt(2.0 * Math.PI * (Math.Pow(sigma, 2)));
             return a / b;
         }
 
@@ -167,7 +144,7 @@ namespace Parallel.Location.ParticleFilter
 
             foreach (IDistance distance in distances)
             {
-                var anchor = _anchors[distance.FromAnchorId];
+                IAnchor anchor = _anchors[distance.FromAnchorId];
                 if (maxH < anchor.Z + distance.Distance)
                 {
                     maxH = anchor.Z + distance.Distance;
@@ -213,10 +190,10 @@ namespace Parallel.Location.ParticleFilter
                 {
                     double x = Random.Next((int) worldSizeInfo.WorldSizeWidthMin,
                         (int) worldSizeInfo.WorldSizeWidthMax);
-                    double y = Random.Next((int) worldSizeInfo.WorldSizeHeightMin,
+                    double z = Random.Next((int) worldSizeInfo.WorldSizeHeightMin,
                         (int) worldSizeInfo.WorldSizeHeightMax);
 
-                    var particle = new PJayParticle(x, y);
+                    var particle = new PJayParticle(x, z);
                     particle.SetNoise(_numberOfCircleDistances);
                     particles.Add(particle);
                 }
@@ -229,25 +206,25 @@ namespace Parallel.Location.ParticleFilter
             // particles = new List<PJayParticle>(_numberOfParticles);
 
 
-            var result = GenerateCoordinates(distances, particles, out IList<PJayParticle> trainedParticles, doesExist);
-            var averageX = trainedParticles.Average(x => x.X);
-            var averageY = trainedParticles.Average(x => x.Y);
+            ICoordinate result = GenerateCoordinates(distances, particles, out IList<PJayParticle> trainedParticles, doesExist);
+            double averageX = trainedParticles.Average(x => x.X);
+            double averageZ = trainedParticles.Average(x => x.Z);
 
             for (int i = trainedParticles.Count; i < _numberOfParticles; i++)
             {
                 double x = averageX + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
-                double y = averageY + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
+                double z = averageZ + Random.Next(-_numberOfCircleDistances, _numberOfCircleDistances);
 
-                var particle = new PJayParticle(x, y);
+                var particle = new PJayParticle(x, z);
                 particle.SetNoise(_numberOfCircleDistances);
                 trainedParticles.Add(particle);
             }
 
             _particles[objectId].Particles = trainedParticles as List<PJayParticle> ?? trainedParticles.ToList();
-            var now = DateTime.Now;
-            if (_particles[objectId].GetAcceleration(result,now,out var acceleration) && !double.IsNaN(acceleration))
+            DateTime now = DateTime.Now;
+            if (_particles[objectId].GetAcceleration(result,now,out double acceleration) && !double.IsNaN(acceleration))
             {
-                var std = _particles[objectId].AccelerationStd;
+                double std = _particles[objectId].AccelerationStd;
                 if (!double.IsNaN(std))
                 {
                     var kalmanFilter = new KalmanFilter2D(3, acceleration, _particles[objectId].AccelerationStd);

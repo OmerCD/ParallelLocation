@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using MessageObjectRouter;
 using Microsoft.Extensions.Logging;
@@ -59,6 +60,7 @@ namespace Parallel.Main
             }
         }
 
+        private int _counter = 0;
         private void ConsumerReceived(object sender, BasicDeliverEventArgs e)
         {
             // _queueList.Add(e);
@@ -67,8 +69,12 @@ namespace Parallel.Main
             // Console.WriteLine(ObjectDumper.Dump(JsonConvert.DeserializeObject<PacketFromQueue>(Encoding.UTF8.GetString(e.Body))));
 
             var packet = JsonConvert.DeserializeObject<PacketFromQueue>(Encoding.UTF8.GetString(e.Body));
-            
+
             var message = _parseRouter.GetObject(packet.Buffer);
+            // if (packet.Buffer[0] == 98 && packet.Buffer[1] == 115)
+            // {
+            //     Console.WriteLine(Interlocked.Increment(ref _counter));
+            // }
             if (message != null)
             {
                 _processManager.Handle(message);

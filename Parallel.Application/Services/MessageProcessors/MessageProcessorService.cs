@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Parallel.Application.Entities.Database.Mongo;
@@ -24,6 +25,8 @@ namespace Parallel.Application.Services.MessageProcessors
         private readonly ILogger<LocationCreatorService> _logger;
         private readonly IHubContext<LocationHub> _locationHubContext;
         private readonly AppSettings _appSettings;
+        private readonly ILocationCalculator _type4Calculator;
+        private static readonly ManualResetEvent ResetEvent = new ManualResetEvent(true);
 
         public LocationCreatorService(
             ILocationCalculatorRouter<Type> locationCalculatorRouter, IDatabaseContext databaseContext,
@@ -42,14 +45,14 @@ namespace Parallel.Application.Services.MessageProcessors
             {
                 LocationReady = LocationCreateLocationReady
             };
+            _type4Calculator = _locationCalculatorRouter.GetCalculator(typeof(MessageType4));
         }
 
         private void LocationCreateLocationReady(MessageType4[] messages)
         {
             if (messages.Length > 1)
             {
-                ILocationCalculator calculator = _locationCalculatorRouter.GetCalculator(typeof(MessageType4));
-                if (calculator.MinAnchorCount <= messages.Length)
+                if (_type4Calculator.MinAnchorCount <= messages.Length)
                 {
                     var distances = new DistanceBase[messages.Length];
                     var messageRecords = new MessageRecord[messages.Length];
@@ -64,45 +67,50 @@ namespace Parallel.Application.Services.MessageProcessors
                         };
                     }
 
-
-                    ICoordinate coordinate = calculator.GetResult(messages.First().MobilNodeId, distances);
-                    if (coordinate == null)
+                    ResetEvent.WaitOne();
+                    ResetEvent.Reset();
+                    try
                     {
-                        return;
-                    }
-
-                    var locationEntity = new LocationRecord
-                    {
-                        X = coordinate.X,
-                        Y = coordinate.Y,
-                        Z = coordinate.Z,
-                        MessageRecords = messageRecords,
-                        TagId = messages[0].MobilNodeId
-                    };
-                    // _locationRepository.Add(locationEntity);
-                    // _databaseContext.SaveChanges();
-                    var anchors = new List<AnchorInfo>();
-                    foreach (var distance in distances)
-                    {
-                        var currentAnchor = calculator[distance.FromAnchorId];
-                        anchors.Add(new AnchorInfo
+                        ICoordinate coordinate = _type4Calculator.GetResult(messages.First().MobilNodeId, distances);
+                        if (coordinate == null)
                         {
-                            Radius = distance.Distance,
-                            X = currentAnchor.X,
-                            Y = currentAnchor.Y,
-                            Z = currentAnchor.Z,
-                            Name = currentAnchor.Id.ToString()
-                        });
-                    }
+                            return;
+                        }
 
-                    if (messages[0].MobilNodeId == 35002)
-                    {
+                        var locationEntity = new LocationRecord
+                        {
+                            X = coordinate.X,
+                            Y = coordinate.Y,
+                            Z = coordinate.Z,
+                            MessageRecords = messageRecords,
+                            TagId = messages[0].MobilNodeId
+                        };
+                        // _locationRepository.Add(locationEntity);
+                        // _databaseContext.SaveChanges();
+                        var anchors = new List<AnchorInfo>();
+                        foreach (var distance in distances)
+                        {
+                            var currentAnchor = _type4Calculator[distance.FromAnchorId];
+                            anchors.Add(new AnchorInfo
+                            {
+                                Radius = distance.Distance,
+                                X = currentAnchor.X,
+                                Y = currentAnchor.Y,
+                                Z = currentAnchor.Z,
+                                Name = currentAnchor.Id.ToString()
+                            });
+                        }
+
                         _locationHubContext.Clients.All.SendCoreAsync(_appSettings.SignalRHub,
                             new object[]
                             {
                                 new LocationInfo(locationEntity.TagId, locationEntity.X, locationEntity.Z,
                                     locationEntity.Y, anchors)
                             });
+                    }
+                    finally
+                    {
+                        ResetEvent.Set();
                     }
                 }
             }
@@ -115,7 +123,17 @@ namespace Parallel.Application.Services.MessageProcessors
 
         public void Handle(object message)
         {
-            _locationCreate.AddLocationMessage((MessageType4) message);
+            if (message is MessageType4 messageType4)
+            {
+                var anchor = _type4Calculator[messageType4.ReaderNodeId];
+
+                if (anchor.MaxReadDistance > 0 && anchor.MaxReadDistance < messageType4.ACCZ)
+                {
+                    return;
+                }
+
+                _locationCreate.AddLocationMessage(messageType4);
+            }
         }
     }
 }

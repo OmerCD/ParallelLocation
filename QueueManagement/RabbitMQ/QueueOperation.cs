@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Parallel.Main.Exceptions;
 using Parallel.Shared.Credentials;
 using Parallel.Shared.Helper;
 using RabbitMQ.Client;
@@ -55,7 +56,7 @@ namespace QueueManagement.RabbitMQ
                 _model.Close();
             }
 
-            if (_connection != null && _connection.IsOpen)
+            if (_connection?.IsOpen == true)
             {
                 _connection.Close();
             }
@@ -67,9 +68,13 @@ namespace QueueManagement.RabbitMQ
 
         public void DeclareQueueExchange(string exchangeName, string queueName, string routingKey = "")
         {
-            _model?.ExchangeDeclare(exchangeName, ExchangeType.Direct, true, false);
-            _model?.QueueDeclare(queueName, true, false, false, null);
-            _model?.QueueBind(queueName, exchangeName, routingKey);
+            if (_model == null)
+            {
+                throw new ConnectionNotCreatedException($"Connection model is empty. It might be because {nameof(CreateConnection)} method haven't called first.");
+            }
+            _model.ExchangeDeclare(exchangeName, ExchangeType.Direct, true, false);
+            _model.QueueDeclare(queueName, true, false, false, null);
+            _model.QueueBind(queueName, exchangeName, routingKey);
         }
 
         public void DeclareQueue(string queueName)

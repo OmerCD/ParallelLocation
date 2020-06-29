@@ -5,7 +5,7 @@ namespace Parallel.Application.Services.MessageProcessors
     public class CumulocityProcessor:IMessageProcessor<CumulocityProcessor>{
         public bool HandleConditionSatisfied(object message)
         {
-            return false;
+            return true;
         }
 
         public void Handle(object message)

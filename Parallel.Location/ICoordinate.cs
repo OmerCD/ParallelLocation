@@ -1,4 +1,4 @@
-﻿namespace Parallel.Location
+﻿﻿﻿namespace Parallel.Location
 {
     public interface ICoordinate
     {

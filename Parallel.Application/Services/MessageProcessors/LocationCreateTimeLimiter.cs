@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Parallel.Application.Services.Interfaces;
+using Parallel.Shared.DataTransferObjects;
 
 namespace Parallel.Application.Services.MessageProcessors
 {
-    public class LocationCreateTimeLimiter<TMessage, TReaderId, TTagId> : ILocationCreateLimiter<TMessage>
+    public class LocationCreateTimeLimiter<TMessage, TReaderId, TTagId> : ILocationCreateLimiter<TMessage> where TMessage: IDataCountMessage
     {
         private readonly Func<TMessage, TReaderId> _getReaderId;
         private readonly Func<TMessage, TTagId> _getTagId;
@@ -24,7 +25,9 @@ namespace Parallel.Application.Services.MessageProcessors
         public void AddLocationMessage(TMessage message)
         {
             TReaderId readerId = _getReaderId(message);
+            
             TTagId tagId = _getTagId(message);
+            
             if (!_tagDictionary.ContainsKey(tagId))
             {
                 var tagTimeController = new TagTimeController(2000, tagId);
@@ -42,7 +45,9 @@ namespace Parallel.Application.Services.MessageProcessors
 
         private void TagTimeControllerOnTagLocationReady(TTagId tagId, IDictionary<TReaderId, ICollection<TMessage>> values)
         {
-            LocationReady?.Invoke(values.Select(x=>x.Value.LastOrDefault()).ToArray());
+            var tempValues = new Dictionary<TReaderId, ICollection<TMessage>>(values);
+            // LocationReady?.Invoke(values.Select(x=>x.Value.LastOrDefault()).ToArray());
+            LocationReady?.Invoke(tempValues.Select(x=>x.Value.OrderByDescending(y=>y.DataCountNo).FirstOrDefault()).ToArray());
         }
 
         private class TagTimeController :ConcurrentDictionary<TReaderId, ICollection<TMessage>>, IDisposable

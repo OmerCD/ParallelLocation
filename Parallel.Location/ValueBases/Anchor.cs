@@ -2,8 +2,9 @@
 {
     public class Anchor:IAnchor
     {
-        public Anchor(double x, double z, double y, int id)
+        public Anchor(double x, double z, double y, int id, double maxReadDistance = default)
         {
+            MaxReadDistance = maxReadDistance;
             X = x;
             Z = z;
             Y = y;
@@ -18,5 +19,6 @@
         public double Z { get; set; }
         public double Y { get; set; }
         public int Id { get; set; }
+        public double MaxReadDistance { get; set; }
     }
 }

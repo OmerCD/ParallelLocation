@@ -97,11 +97,11 @@ namespace Parallel.Location.ParticleAreaFilter
 
         public ICoordinate GetResult(int id, params IDistance[] distances)
         {
-            if (CheckIfAnchorsColliding(distances))
-            {
-                // TODO: Kesişim yoksa ParticleFilter algoritmasının çalışması gerekiyor.
-                return null;
-            }
+            // if (CheckIfAnchorsColliding(distances))
+            // {
+            //     // TODO: Kesişim yoksa ParticleFilter algoritmasının çalışması gerekiyor.
+            //     return null;
+            // }
 
             double minH = double.MaxValue;
             double maxH = 0;
@@ -167,7 +167,7 @@ namespace Parallel.Location.ParticleAreaFilter
 
             var result = GenerateCoordinates2(distances, particles, out IList<PJayParticle> trainedParticles, doesExist);
             var averageX = trainedParticles.Average(x => x.X);
-            var averageY = trainedParticles.Average(x => x.Y);
+            var averageY = trainedParticles.Average(x => x.Z);
 
             for (int i = trainedParticles.Count; i < _numberOfParticles; i++)
             {
@@ -261,7 +261,7 @@ namespace Parallel.Location.ParticleAreaFilter
                     {
                         realDistance = Math.Sqrt(Math.Pow(distance.Distance, 2) - Math.Pow(anchor.Y, 2));
                     }
-                    if (IsInsideOfSphere(new Coordinate(particle.X, particle.Y, 0),anchor, realDistance))
+                    if (IsInsideOfSphere(new Coordinate(particle.X, particle.Z, 0),anchor, realDistance))
                     {
                         particle.Weight++;
                     }
@@ -280,7 +280,7 @@ namespace Parallel.Location.ParticleAreaFilter
             foreach (var particle in pJayParticles)
             {
                 summed.X += particle.X;
-                summed.Z += particle.Y;
+                summed.Z += particle.Z;
                 particle.Weight = 0;
                 count++;
             }
@@ -305,10 +305,10 @@ namespace Parallel.Location.ParticleAreaFilter
             foreach (PJayParticle pJay in particles)
             {
                 double prob = 1;
-                var pCoordinate = new Coordinate(pJay.X, pJay.Y, 0);
+                var pCoordinate = new Coordinate(pJay.X, pJay.Z, 0);
                 foreach (ICoordinate intersectionCenter in intersectionCenters)
                 {
-                    var dist = _euclidean.Distance(new[] {pJay.X, pJay.Y},
+                    var dist = _euclidean.Distance(new[] {pJay.X, pJay.Z},
                         new[] {intersectionCenter.X, intersectionCenter.Z});
                     // prob *= Normal.Gaussian2D(Math.Pow(80,2), dist, 0);
                     prob *= GaussianProbabilityDistribution(dist, 150, 0);
@@ -331,7 +331,7 @@ namespace Parallel.Location.ParticleAreaFilter
                 {
                     newParticles.Add(particles[i]);
                     resultPosition.X += particles[i].X * weights[i];
-                    resultPosition.Z += particles[i].Y * weights[i];
+                    resultPosition.Z += particles[i].Z * weights[i];
                     weightTotal += weights[i];
                 }
             }
@@ -349,7 +349,7 @@ namespace Parallel.Location.ParticleAreaFilter
                     var xx = newParticles[i].X +
                              ParticleFilter.ParticleFilter.Random.Next(-_numberOfCircleDistances,
                                  _numberOfCircleDistances);
-                    var zz = newParticles[i].Y +
+                    var zz = newParticles[i].Z +
                              ParticleFilter.ParticleFilter.Random.Next(-_numberOfCircleDistances,
                                  _numberOfCircleDistances);
 

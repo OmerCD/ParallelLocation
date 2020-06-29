@@ -6,7 +6,7 @@ using ReflectorO.CustomParse;
 
 namespace Parallel.Shared.DataTransferObjects
 {
-    public class MessageType4
+    public class MessageType4 : IDataCountMessage
     {
         public byte MessageType { get; set; }
         public byte DataSize { get; set; }

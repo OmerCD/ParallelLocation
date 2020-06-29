@@ -101,7 +101,7 @@ namespace Listener.WorkerService
             var endPoint = new IPEndPoint(IPAddress.Parse(bindInformation.Address), bindInformation.Port);
             _listener = new TcpListenerEx(endPoint);
             _listener.Start();
-            Console.WriteLine($"Started Listening : {bindInformation.Address} : {bindInformation.Port}");
+            Console.WriteLine($"Started Listening : {bindInformation.Address}:{bindInformation.Port}");
             var buffer = new byte[8192];
 
             //Gelen bağlantıyı kabul etmek için asenkron bir işlem başlatır.
